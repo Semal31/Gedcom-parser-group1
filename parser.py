@@ -3,6 +3,8 @@
 import sys
 import getopt
 import os
+from tabulate import tabulate
+from datetime import datetime
 
 TAGS = {
     "NOTE": 0,
@@ -33,8 +35,85 @@ def is_valid_tag(level, tag):
     return "Y" if (tag in TAGS and TAGS[tag] == level) else "N"
 
 
-def print_information():
-    print("Individuals")
+def get_age(birth_date, death_date=None):
+    today = datetime.today()
+    date = datetime.strptime(birth_date, "%d %b %Y")
+    if not death_date:
+        return (
+            today.year - date.year - ((today.month, today.day) < (date.month, date.day))
+        )
+    else:
+        death_date = datetime.strptime(death_date, "%d %b %Y")
+        return (
+            death_date.year
+            - date.year
+            - ((today.month, today.day) < (death_date.month, death_date.day))
+        )
+
+
+def get_children(indi_id, fam_id):
+    return families[fam_id]["CHIL"]
+
+
+def get_spouse_id(indi_id, fam_id):
+    family = families[fam_id]
+    if fam_id == family.get("HUSB"):
+        return family["WIFE"]
+    else:
+        return family["HUSB"]
+
+
+def get_individual_name(indi_id):
+    return individuals[indi_id]["NAME"]
+
+
+def get_id_number(id):
+    id_string = ""
+    for c in id:
+        if ord(c) >= ord("0") and ord(c) <= ord("9"):
+            id_string += c
+    return int(id_string)
+
+
+def get_sorted_families():
+    rows = []
+    for k in sorted(families, key=get_id_number):
+        v = families[k]
+        rows.append(
+            [
+                k,
+                v.get("MARR", "N/A"),
+                v.get("DIV", "N/A"),
+                v.get("HUSB", "N/A"),
+                get_individual_name(v["HUSB"]) if "HUSB" in v else "N/A",
+                v.get("WIFE", "N/A"),
+                get_individual_name(v["WIFE"]) if "WIFE" in v else "N/A",
+                v.get("CHILDREN", "N/A"),
+            ]
+        )
+    return rows
+
+
+def get_sorted_individuals():
+    rows = []
+    for k in sorted(individuals, key=get_id_number):
+        v = individuals[k]
+        rows.append(
+            [
+                k,
+                v.get("NAME"),
+                v.get("SEX"),
+                v.get("DATE"),
+                get_age(v.get("DATE"), v.get("DEATH_DATE"))
+                if "DEAT" in v
+                else get_age(v.get("DATE")),
+                "DEAT" not in v,
+                v.get("DEATH_DATE") if "DEAT" in v else "N/A",
+                get_children(k, v["FAMC"]) if "FAMC" in v else "N/A",
+                get_spouse_id(k, v["FAMS"]) if "FAMS" in v else "N/A",
+            ]
+        )
+    return rows
 
 
 def get_information(file_path):
@@ -49,7 +128,7 @@ def get_information(file_path):
             level, tag, *arguments = parts
             if level == "0":
                 if arguments and arguments[0] in ("INDI", "FAM"):
-                    id = tag[1:3]
+                    id = tag
                     parsing = arguments[0]
                     if parsing == "INDI":
                         individuals[id] = {}
@@ -59,13 +138,51 @@ def get_information(file_path):
                     parsing = ""
             elif parsing and tag in TAGS:
                 if parsing == "INDI":
-                    individuals[id][tag] = " ".join(arguments)
+                    if tag == "DEAT":
+                        individuals[id][tag] = " ".join(arguments)
+                        nextline = fp.readline()
+                        level, tag, *arguments = nextline.rstrip().split(" ")
+                        individuals[id]["DEATH_DATE"] = " ".join(arguments)
+                    else:
+                        individuals[id][tag] = " ".join(arguments)
                 else:
-                    families[id][tag] = " ".join(arguments)
+                    if tag == "CHIL":
+                        if tag in families[id]:
+                            families[id][tag].append(arguments[0])
+                        else:
+                            families[id][tag] = [arguments[0]]
+                    elif tag in ("MARR", "DIV"):
+                        nextline = fp.readline()
+                        _, __, *arguments = nextline.rstrip().split(" ")
+                        families[id][tag] = " ".join(arguments)
+                    else:
+                        families[id][tag] = " ".join(arguments)
 
+    indi_headers = [
+        "ID",
+        "Name",
+        "Gender",
+        "Birthday",
+        "Age",
+        "Alive",
+        "Death",
+        "Child",
+        "Spouse",
+    ]
+    fam_headers = [
+        "ID",
+        "Married",
+        "Divorced",
+        "Husband ID",
+        "Husband Name",
+        "Wife ID",
+        "Wife Name",
+        "Children",
+    ]
     print("Individuals")
-    print(individuals)
-    print(families)
+    print(tabulate(get_sorted_individuals(), headers=indi_headers))
+    print("\n\nFamilies")
+    print(tabulate(get_sorted_families(), headers=fam_headers))
 
 
 def parse_GEDCOM(file_path):
