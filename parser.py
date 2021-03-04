@@ -88,7 +88,7 @@ def get_sorted_families():
                 get_individual_name(v["HUSB"]) if "HUSB" in v else "N/A",
                 v.get("WIFE", "N/A"),
                 get_individual_name(v["WIFE"]) if "WIFE" in v else "N/A",
-                v.get("CHILDREN", "N/A"),
+                v.get("CHIL", "N/A"),
             ]
         )
     return rows
