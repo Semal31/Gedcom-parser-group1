@@ -180,6 +180,8 @@ def get_information(file_path):
         "Children",
     ]
     check_marriage_divorce_dates(families)
+    us_05(families)
+    us_10(families)
     print("Individuals")
     print(tabulate(get_sorted_individuals(), headers=indi_headers))
     print("\n\nFamilies")
@@ -202,6 +204,54 @@ def check_marriage_divorce_dates(families):
   if not is_valid:
     sys.exit(1)
 
+#US05 - Marriage before Death
+def us_05(families):
+    is_valid = True
+    for id in families:
+        if "MARR" in families[id]:
+            # print(families[id]["MARR"])
+            marriage_Date = datetime.strptime(families[id]["MARR"], "%d %b %Y").date()
+            husb_ID = families[id]["HUSB"]
+            wife_ID = families[id]["WIFE"]
+            if 'DEAT' in individuals[husb_ID]:
+                husbDeath = datetime.strptime(individuals[husb_ID]["DEATH_DATE"],"%d %b %Y").date()
+                if marriage_Date > husbDeath:
+                    print("US05 - Marriage after death of husband is not possible.\n")
+                    is_valid = False
+            if 'DEAT' in individuals[wife_ID]:
+                wifeDeath = datetime.strptime(individuals[wife_ID]["DEATH_DATE"],"%d %b %Y").date()
+                if marriage_Date > wifeDeath:
+                    print("US05 - Marriage after death of wife is not possible.\n")
+                    is_valid = False
+            # print(families[id]["HUSB"])
+    if not is_valid:
+        sys.exit(1)
+
+#US10 - Marriage after 14
+def us_10(families):
+    is_valid = True
+    for id in families:
+        if "MARR" in families[id]:
+            marriage_Date = datetime.strptime(families[id]["MARR"], "%d %b %Y").date()
+            husb_ID = families[id]["HUSB"]
+            wife_ID = families[id]["WIFE"]
+            husb_Bday = datetime.strptime(individuals[husb_ID]["DATE"], "%d %b %Y").date()
+            wife_Bday = datetime.strptime(individuals[wife_ID]["DATE"], "%d %b %Y").date()
+            husb_Age = (marriage_Date - husb_Bday).days / 365
+            wife_Age = (marriage_Date - wife_Bday).days / 365
+            # print(int(husb_Age))
+            # print(int(wife_Age))
+            if husb_Age < 14 and wife_Age < 14:
+                print("US10 - Marriage happened before both husband and wife were 14.")
+                is_valid = False
+            elif husb_Age < 14:
+                print("US10 - Marriage happened before husband was 14.")
+                is_valid = False
+            elif wife_Age < 14:
+                print("US10 - Marriage happened before wife was 14.")
+                is_valid = False
+    if not is_valid:
+        sys.exit(1)
 
 def parse_GEDCOM(file_path):
     if not os.path.exists(file_path):
