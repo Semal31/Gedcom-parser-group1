@@ -183,6 +183,18 @@ def get_information(file_path):
     print(tabulate(get_sorted_individuals(), headers=indi_headers))
     print("\n\nFamilies")
     print(tabulate(get_sorted_families(), headers=fam_headers))
+    check_marriage_divorce_dates(families)
+
+
+def check_marriage_divorce_dates(families):
+  for id in families:
+      if "DIV" in families[id]:
+        divorce_date = datetime.strptime(families[id]["DIV"], "%d %b %Y")
+        marriage_date = datetime.strptime(families[id]["MARR"], "%d %b %Y")
+        if divorce_date < marriage_date:
+          print("\nDivorce before marriage is not possible")
+          print(" Marriage: " + families[id]["MARR"])
+          print(" Divorce: " + families[id]["DIV"])
 
 
 def parse_GEDCOM(file_path):
