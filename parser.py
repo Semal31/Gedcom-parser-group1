@@ -186,7 +186,6 @@ def get_information(file_path):
     print(tabulate(get_sorted_individuals(), headers=indi_headers))
     print("\n\nFamilies")
     print(tabulate(get_sorted_families(), headers=fam_headers))
-    print(individuals)
 
 
 def check_marriage_divorce_dates(families, individuals):
