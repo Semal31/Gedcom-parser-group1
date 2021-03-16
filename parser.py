@@ -63,7 +63,7 @@ def get_spouse_id(indi_id, fam_id):
         return family["HUSB"]
 
 
-def get_individual_name(indi_id):
+def get_individual_name(indi_id, individuals):
     return individuals[indi_id]["NAME"]
 
 
@@ -85,9 +85,9 @@ def get_sorted_families():
                 v.get("MARR", "N/A"),
                 v.get("DIV", "N/A"),
                 v.get("HUSB", "N/A"),
-                get_individual_name(v["HUSB"]) if "HUSB" in v else "N/A",
+                get_individual_name(v["HUSB"], individuals) if "HUSB" in v else "N/A",
                 v.get("WIFE", "N/A"),
-                get_individual_name(v["WIFE"]) if "WIFE" in v else "N/A",
+                get_individual_name(v["WIFE"], individuals) if "WIFE" in v else "N/A",
                 v.get("CHIL", "N/A"),
             ]
         )
@@ -179,16 +179,17 @@ def get_information(file_path):
         "Wife Name",
         "Children",
     ]
-    check_marriage_divorce_dates(families)
-    us_05(families)
-    us_10(families)
+    check_marriage_divorce_dates(families, individuals)
+    # us_05(families)
+    # us_10(families)
     print("Individuals")
     print(tabulate(get_sorted_individuals(), headers=indi_headers))
     print("\n\nFamilies")
     print(tabulate(get_sorted_families(), headers=fam_headers))
+    print(individuals)
 
 
-def check_marriage_divorce_dates(families):
+def check_marriage_divorce_dates(families, individuals):
   is_valid = True
   for id in families:
       if "DIV" in families[id]:
@@ -197,12 +198,14 @@ def check_marriage_divorce_dates(families):
         if divorce_date < marriage_date:
           if (is_valid):
             print("Divorce before marriage is not possible\n")
-          print("Husband: " + get_individual_name(families[id]["HUSB"]).replace("/", "") + "\nWife: " + get_individual_name(families[id]["WIFE"]).replace("/", ""))
+          print("Husband: " + get_individual_name(families[id]["HUSB"], individuals).replace("/", "") + "\nWife: " + get_individual_name(families[id]["WIFE"], individuals).replace("/", ""))
           print("\nMarriage: " + families[id]["MARR"])
           print("Divorce: " + families[id]["DIV"])
           is_valid = False
   if not is_valid:
+    return False
     sys.exit(1)
+  return True
 
 #US05 - Marriage before Death
 def us_05(families):
