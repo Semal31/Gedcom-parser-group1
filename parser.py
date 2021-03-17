@@ -187,7 +187,8 @@ def get_information(file_path):
     print("\n")
     # us_05(families)
     # us_10(families)
-
+    dates_before_current(args[0]) #US01
+    # divorce_before_death(families) #US06
 
 def check_marriage_divorce_dates(families, individuals):
   is_valid = True
@@ -206,6 +207,48 @@ def check_marriage_divorce_dates(families, individuals):
     return False
     sys.exit(1)
   return True
+
+#US01 - Dates before current date
+def dates_before_current(file_path):
+    f = open(file_path, "r")
+    count = 0
+    for line in f:
+        if "2 DATE" in line:
+            formatted_date = datetime.strptime(line[7:-1], "%d %b %Y")
+            current_date = datetime.now()
+            if formatted_date > current_date:
+                print("ERROR: INDIVIDUAL: US01: Date '" + line[7:-1] + "' is a future date that has not yet occurred")
+                count +=1
+                # count instances of error found (if none are found then return True)
+    if count == 0:
+        return True
+    else:
+        return False
+    
+    
+#US06 - Divorce before death
+def divorce_before_death(families):
+    for id in families:
+        if "DIV" in families[id]:
+            # print(families[id])
+            div_date = datetime.strptime(families[id]["DIV"], "%d %b %Y")
+            print(div_date)
+            husb_ID = families[id]["HUSB"]
+            wife_ID = families[id]["WIFE"]
+            print(individuals)
+            if 'DEAT' in individuals[husb_ID] and 'DEAT' in individuals[wife_ID]:
+                husbDeath = datetime.strptime(individuals[husb_ID]["DEATH_DATE"], "%d %b %Y")
+                wifeDeath = datetime.strptime(individuals[wife_ID]["DEATH_DATE"], "%d %b %Y")
+                if div_date > husbDeath and div_date > wifeDeath:
+                    print("ERROR: FAMILY: US06: Divorce date of marriage between " + individuals[husb_ID]["NAME"] + " and " + individuals[wife_ID]["NAME"] + "cannot occur after both partners' deaths")
+            elif 'DEAT' in individuals[husb_ID]:
+                husbDeath = datetime.strptime(individuals[husb_ID]["DEATH_DATE"], "%d %b %Y")
+                if div_date > husbDeath:
+                    print("ERROR: FAMILY: US06: Divorce date of marriage between " + individuals[husb_ID]["NAME"] + " and " + individuals[wife_ID]["NAME"] + "cannot occur after " + [individuals][husb_ID]["NAME"] + "'s death")
+            elif 'DEAT' in individuals[wife_ID]:
+                wifeDeath = datetime.strptime(individuals[wife_ID]["DEATH_DATE"], "%d %b %Y")
+                if div_date > wifeDeath:
+                    print("ERROR: FAMILY: US06: Divorce date of marriage between " + individuals[husb_ID]["NAME"] + " and " + individuals[wife_ID]["NAME"] + "cannot occur after " + [individuals][wife_ID]["NAME"] + "'s death")
 
 #US05 - Marriage before Death
 def us_05(families):
