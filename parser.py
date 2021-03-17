@@ -5,6 +5,7 @@ import getopt
 import os
 from tabulate import tabulate
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
 
 TAGS = {
     "NOTE": 0,
@@ -185,10 +186,40 @@ def get_information(file_path):
     print("\n\nFamilies")
     print(tabulate(get_sorted_families(), headers=fam_headers))
     print("\n")
-    us_05(families,individuals)
-    us_10(families,individuals)
+    children_before_death(families, individuals)
+    # us_05(families,individuals)
+    # us_10(families,individuals)
+
+def children_before_death(families, individuals):
+  for id in families:
+      if "CHIL" in families[id]:
+        if "HUSB" in families[id]:
+          husband = individuals[families[id]["HUSB"]]
+        if "WIFE" in families[id]:
+          wife = individuals[families[id]["WIFE"]]
+        if "DEATH_DATE" in husband:
+          husb_death = datetime.strptime(husband["DEATH_DATE"], "%d %b %Y")
+        else: 
+          husb_death = False
+        if "DEATH_DATE" in wife:
+          wife_death = datetime.strptime(wife["DEATH_DATE"], "%d %b %Y")
+        else: 
+          wife_death = False
+        for chil_id in families[id]["CHIL"]:
+          birth_child = individuals[chil_id]["DATE"]
+          if birth_child == "":
+            break
+          birth_child = datetime.strptime(birth_child, "%d %b %Y")
+          if (husb_death):
+            new_husb_death = husb_death + relativedelta(months=9)
+            if (birth_child > husb_death):
+              print("Error: Husband: '" + husband["NAME"] + "' death on " + husb_death.strftime("%d-%b-%Y") + " is impossible for child: '" + individuals[chil_id]["NAME"] + "' to be born on " + birth_child.strftime("%d-%b-%Y"))
+          if (wife_death):
+            if (birth_child > wife_death):
+              print("Error: Wife: '" + wife["NAME"] + "' death on " + wife_death.strftime("%d-%b-%Y") + " is impossible for child: '" + individuals[chil_id]["NAME"] + "' to be born on " + birth_child.strftime("%d-%b-%Y"))
 
 
+# Marriage before divorce
 def check_marriage_divorce_dates(families, individuals):
   is_valid = True
   for id in families:
