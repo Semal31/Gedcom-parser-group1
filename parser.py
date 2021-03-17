@@ -5,6 +5,7 @@ import getopt
 import os
 from tabulate import tabulate
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
 
 TAGS = {
     "NOTE": 0,
@@ -179,17 +180,46 @@ def get_information(file_path):
         "Wife Name",
         "Children",
     ]
-    check_marriage_divorce_dates(families, individuals)
+    # check_marriage_divorce_dates(families, individuals)
     print("Individuals")
     print(tabulate(get_sorted_individuals(), headers=indi_headers))
     print("\n\nFamilies")
     print(tabulate(get_sorted_families(), headers=fam_headers))
     print("\n")
-    # us_05(families)
-    # us_10(families)
-    dates_before_current(args[0]) #US01
-    # divorce_before_death(families) #US06
+    children_before_death(families, individuals)
+    # us_05(families,individuals)
+    # us_10(families,individuals)
 
+def children_before_death(families, individuals):
+  for id in families:
+      if "CHIL" in families[id]:
+        if "HUSB" in families[id]:
+          husband = individuals[families[id]["HUSB"]]
+        if "WIFE" in families[id]:
+          wife = individuals[families[id]["WIFE"]]
+        if "DEATH_DATE" in husband:
+          husb_death = datetime.strptime(husband["DEATH_DATE"], "%d %b %Y")
+        else: 
+          husb_death = False
+        if "DEATH_DATE" in wife:
+          wife_death = datetime.strptime(wife["DEATH_DATE"], "%d %b %Y")
+        else: 
+          wife_death = False
+        for chil_id in families[id]["CHIL"]:
+          birth_child = individuals[chil_id]["DATE"]
+          if birth_child == "":
+            break
+          birth_child = datetime.strptime(birth_child, "%d %b %Y")
+          if (husb_death):
+            new_husb_death = husb_death + relativedelta(months=9)
+            if (birth_child > husb_death):
+              print("Error: Husband: '" + husband["NAME"] + "' death on " + husb_death.strftime("%d-%b-%Y") + " is impossible for child: '" + individuals[chil_id]["NAME"] + "' to be born on " + birth_child.strftime("%d-%b-%Y"))
+          if (wife_death):
+            if (birth_child > wife_death):
+              print("Error: Wife: '" + wife["NAME"] + "' death on " + wife_death.strftime("%d-%b-%Y") + " is impossible for child: '" + individuals[chil_id]["NAME"] + "' to be born on " + birth_child.strftime("%d-%b-%Y"))
+
+
+# Marriage before divorce
 def check_marriage_divorce_dates(families, individuals):
   is_valid = True
   for id in families:
@@ -251,7 +281,8 @@ def divorce_before_death(families):
                     print("ERROR: FAMILY: US06: Divorce date of marriage between " + individuals[husb_ID]["NAME"] + " and " + individuals[wife_ID]["NAME"] + "cannot occur after " + [individuals][wife_ID]["NAME"] + "'s death")
 
 #US05 - Marriage before Death
-def us_05(families):
+def us_05(families,individuals):
+    is_valid = True
     for id in families:
         if "MARR" in families[id]:
             marriage_Date = datetime.strptime(families[id]["MARR"], "%d %b %Y").date()
@@ -261,13 +292,17 @@ def us_05(families):
                 husbDeath = datetime.strptime(individuals[husb_ID]["DEATH_DATE"],"%d %b %Y").date()
                 if marriage_Date > husbDeath:
                     print("ERROR: FAMILY: US05: Marriage occurred after death of husband (" + get_individual_name(husb_ID,individuals).replace("/","") + ").")
+                    is_valid = False
             if 'DEAT' in individuals[wife_ID]:
                 wifeDeath = datetime.strptime(individuals[wife_ID]["DEATH_DATE"],"%d %b %Y").date()
                 if marriage_Date > wifeDeath:
                     print("ERROR: FAMILY: US05: Marriage occurred after death of wife (" + get_individual_name(wife_ID,individuals).replace("/","")+ ").")
+                    is_valid = False
+    return is_valid
 
 #US10 - Marriage after 14
-def us_10(families):
+def us_10(families,individuals):
+    is_valid = True
     for id in families:
         if "MARR" in families[id]:
             marriage_Date = datetime.strptime(families[id]["MARR"], "%d %b %Y").date()
@@ -279,10 +314,14 @@ def us_10(families):
             wife_Age = (marriage_Date - wife_Bday).days / 365
             if husb_Age < 14 and wife_Age < 14:
                 print("ANOMALY: FAMILY: US10: Marriage happened before both husband ("+ get_individual_name(husb_ID,individuals).replace("/","") + ") and wife ("+get_individual_name(wife_ID,individuals).replace("/","")+ ") were 14.")
+                is_valid = False
             elif husb_Age < 14:
                 print("ANOMALY: FAMILY: US10: Marriage happened before husband ("+ get_individual_name(husb_ID,individuals).replace("/","") +") was 14.")
+                is_valid = False
             elif wife_Age < 14:
                 print("ANOMALY: FAMILY: US10: Marriage happened before wife ("+get_individual_name(wife_ID,individuals).replace("/","")+")was 14.")
+                is_valid = False
+    return is_valid
 
 def parse_GEDCOM(file_path):
     if not os.path.exists(file_path):
