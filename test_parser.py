@@ -425,11 +425,11 @@ def test_US03_invalid():
     assert us_03(individuals) == False
 
 def test_US08_valid():
-    families = {'@F1@': {'HUSB': '@I1@', 'WIFE': '@I2@', 'DATE': '15 APR 1999'}}
+    families = {'@F1@': {'HUSB': '@I1@', 'WIFE': '@I2@', 'MARR': '15 APR 1999'}}
     individuals = {'@I3@': {'NAME': 'Michael /Cooke/', 'SEX': 'M', 'BIRT': '', 'DATE': '2 DEC 2000', 'FAMC': '@F1@'}}
     assert us_08(families, individuals) == True
 
 def test_US08_invalid():
-    families = {'@F1@': {'HUSB': '@I1@', 'WIFE': '@I2@', 'DATE': '15 APR 1999'}}
+    families = {'@F1@': {'HUSB': '@I1@', 'WIFE': '@I2@', 'MARR': '15 APR 1999'}}
     individuals = {'@I3@': {'NAME': 'Michael /Cooke/', 'SEX': 'M', 'BIRT': '', 'DATE': '2 DEC 1998', 'FAMC': '@F1@'}}
     assert us_08(families, individuals) == False
