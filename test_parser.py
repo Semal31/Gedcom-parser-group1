@@ -9,8 +9,8 @@ from parser import (
     check_age,
     dates_before_current,
     divorce_before_death,
-    us03,
-    us08
+    us_03,
+    us_08
 )
 
 
