@@ -1,0 +1,63 @@
+============================= test session starts ==============================
+platform linux -- Python 3.8.5, pytest-6.2.2, py-1.10.0, pluggy-0.13.1 -- /usr/bin/python3
+cachedir: .pytest_cache
+rootdir: /mnt/c/Users/semal/Google Drive/Stevens/Spring 2021/SSW 555 Agile Methods for Software Development/Gedcom-parser-group1
+plugins: mock-3.5.1
+collecting ... collected 22 items
+
+test_parser.py::test_check_marriage_divorce_dates_with_correct_dates PASSED [  4%]
+test_parser.py::test_check_marriage_divorce_dates_with_incorrect_dates PASSED [  9%]
+test_parser.py::test_children_before_death_with_correct_families PASSED  [ 13%]
+test_parser.py::test_children_before_death_with_incorrect_families PASSED [ 18%]
+test_parser.py::test_US05_valid PASSED                                   [ 22%]
+test_parser.py::test_US05_invalid PASSED                                 [ 27%]
+test_parser.py::test_US10_valid PASSED                                   [ 31%]
+test_parser.py::test_US10_invalid PASSED                                 [ 36%]
+test_parser.py::test_check_birth_before_marriage_valid PASSED            [ 40%]
+test_parser.py::test_check_birth_before_marriage_invalid PASSED          [ 45%]
+test_parser.py::test_check_age_valid PASSED                              [ 50%]
+test_parser.py::test_check_age_invalid PASSED                            [ 54%]
+test_parser.py::test_dates_before_current_valid FAILED                   [ 59%]
+test_parser.py::test_dates_before_current_invalid FAILED                 [ 63%]
+test_parser.py::test_divorce_before_death_bothDead_invalid PASSED        [ 68%]
+test_parser.py::test_divorce_before_death_husbDead_invalid PASSED        [ 72%]
+test_parser.py::test_divorce_before_death_wifeDead_invalid PASSED        [ 77%]
+test_parser.py::test_divorce_before_death_valid PASSED                   [ 81%]
+test_parser.py::test_US03_valid PASSED                                   [ 86%]
+test_parser.py::test_US03_invalid PASSED                                 [ 90%]
+test_parser.py::test_US08_valid PASSED                                   [ 95%]
+test_parser.py::test_US08_invalid FAILED                                 [100%]
+
+=================================== FAILURES ===================================
+_______________________ test_dates_before_current_valid ________________________
+
+    def test_dates_before_current_valid():
+>       assert dates_before_current(myfamily.ged) == True
+E       NameError: name 'myfamily' is not defined
+
+test_parser.py:398: NameError
+______________________ test_dates_before_current_invalid _______________________
+
+    def test_dates_before_current_invalid():
+>       assert dates_before_current(testUS01_myfamily.ged) == False
+E       NameError: name 'testUS01_myfamily' is not defined
+
+test_parser.py:400: NameError
+______________________________ test_US08_invalid _______________________________
+
+    def test_US08_invalid():
+        families = {'@F1@': {'HUSB': '@I1@', 'WIFE': '@I2@', 'MARR': '15 APR 1999', 'CHIL': '@I3@'}}
+        individuals = {'@I3@': {'NAME': 'Michael /Cooke/', 'SEX': 'M', 'BIRT': '', 'DATE': '2 DEC 1998', 'FAMC': '@F1@'}}
+>       assert us_08(families, individuals) == False
+E       assert True == False
+E         +True
+E         -False
+
+test_parser.py:435: AssertionError
+----------------------------- Captured stdout call -----------------------------
+ERROR: FILE: US08: Marriage date not set or properly formatted of family: @F1@.
+=========================== short test summary info ============================
+FAILED test_parser.py::test_dates_before_current_valid - NameError: name 'myf...
+FAILED test_parser.py::test_dates_before_current_invalid - NameError: name 't...
+FAILED test_parser.py::test_US08_invalid - assert True == False
+========================= 3 failed, 19 passed in 0.69s =========================
