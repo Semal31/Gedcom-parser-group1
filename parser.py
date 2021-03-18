@@ -194,6 +194,8 @@ def get_information(file_path):
     # us_05(families,individuals)
     # us_10(families,individuals)
     divorce_before_death(families, individuals)
+    # us03
+    # us08
 
 
 def check_age(individuals: dict) -> bool:
@@ -483,6 +485,34 @@ def us_10(families, individuals):
                     + ")was 14."
                 )
                 is_valid = False
+    return is_valid
+
+#US03 - Birth before death
+def us_03(individuals):
+    is_valid = True
+    for id in individuals:
+        if "DEATH_DATE" in individuals[id]:
+            birthDate, deathDate  = datetime.strptime(individuals[id]["DATE"],"%d %b %Y").date(), datetime.strptime(individuals[id]["DEATH_DATE"],"%d %b %Y").date()
+            if birthDate > deathDate:
+                print("ERROR: INDIVIDUAL: US03: Birth occurred after death of individual: " + individuals[id]["NAME"].replace("/","") + " (id: " + id + ").")
+                is_valid = False
+    return is_valid
+
+#US08 - Birth before marriage of parents
+def us_08(families, individuals):
+    is_valid = True
+    for id in families:
+        if "MARR" in families[id]:
+            # Check for edge case of MARR not containing date
+            try:
+                marriageDate = datetime.strptime(families[id]["MARR"], "%d %b %Y").date()
+                for childID in families[id]["CHIL"]:
+                    childBirthDate = datetime.strptime(individuals[childID]["DATE"], "%d %b %Y").date()
+                    if childBirthDate < marriageDate:
+                        print("ANOMALY: FAMILY: US08: Child (" + get_individual_name(childID,individuals).replace("/","") + ") born before marriage of parents in family: " + id + ".")
+                        is_valid = False
+            except:
+                print("ERROR: FILE: US08: Marriage date not set or properly formatted of family: " + id + ".")
     return is_valid
 
 
