@@ -190,20 +190,32 @@ def get_information(file_path):
     # us_05(families,individuals)
     # us_10(families,individuals)
 
+# Children born before parents death
 def children_before_death(families, individuals):
+  is_valid = True
   for id in families:
       if "CHIL" in families[id]:
         if "HUSB" in families[id]:
           husband = individuals[families[id]["HUSB"]]
+        else:
+          husband = None
         if "WIFE" in families[id]:
           wife = individuals[families[id]["WIFE"]]
-        if "DEATH_DATE" in husband:
-          husb_death = datetime.strptime(husband["DEATH_DATE"], "%d %b %Y")
-        else: 
+        else:
+          wife = None
+        if (husband):
+          if "DEATH_DATE" in husband:
+            husb_death = datetime.strptime(husband["DEATH_DATE"], "%d %b %Y")
+          else: 
+            husb_death = False
+        else:
           husb_death = False
-        if "DEATH_DATE" in wife:
-          wife_death = datetime.strptime(wife["DEATH_DATE"], "%d %b %Y")
-        else: 
+        if (wife):
+          if "DEATH_DATE" in wife:
+            wife_death = datetime.strptime(wife["DEATH_DATE"], "%d %b %Y")
+          else: 
+            wife_death = False
+        else:
           wife_death = False
         for chil_id in families[id]["CHIL"]:
           birth_child = individuals[chil_id]["DATE"]
@@ -214,9 +226,12 @@ def children_before_death(families, individuals):
             new_husb_death = husb_death + relativedelta(months=9)
             if (birth_child > husb_death):
               print("Error: Husband: '" + husband["NAME"] + "' death on " + husb_death.strftime("%d-%b-%Y") + " is impossible for child: '" + individuals[chil_id]["NAME"] + "' to be born on " + birth_child.strftime("%d-%b-%Y"))
+              is_valid = False
           if (wife_death):
             if (birth_child > wife_death):
               print("Error: Wife: '" + wife["NAME"] + "' death on " + wife_death.strftime("%d-%b-%Y") + " is impossible for child: '" + individuals[chil_id]["NAME"] + "' to be born on " + birth_child.strftime("%d-%b-%Y"))
+              is_valid = False
+  return is_valid
 
 
 # Marriage before divorce
