@@ -3,6 +3,7 @@
 import sys
 import getopt
 import os
+import util
 from tabulate import tabulate
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
@@ -154,8 +155,9 @@ def get_information(file_path):
                             families[id][tag] = [arguments[0]]
                     elif tag in ("MARR", "DIV"):
                         nextline = fp.readline()
-                        _, __, *arguments = nextline.rstrip().split(" ")
-                        families[id][tag] = " ".join(arguments)
+                        _, next_tag, *arguments = nextline.rstrip().split(" ")
+                        if next_tag == "DATE":
+                            families[id][tag] = " ".join(arguments)
                     else:
                         families[id][tag] = " ".join(arguments)
 
@@ -181,6 +183,8 @@ def get_information(file_path):
         "Children",
     ]
     # check_marriage_divorce_dates(families, individuals)
+    check_birth_before_marriage(families, individuals)
+    check_age(individuals)
     print("Individuals")
     print(tabulate(get_sorted_individuals(), headers=indi_headers))
     print("\n\nFamilies")
@@ -190,96 +194,230 @@ def get_information(file_path):
     # us_05(families,individuals)
     # us_10(families,individuals)
 
+
+def check_age(individuals: dict) -> bool:
+    """Implements user story 7, ensuring each individual is less than 150 years old.
+        Author: Ryan Hartman
+        Last Modified: 3/17/2021
+
+    Args:
+        individuals (dict): A dict of individuals to check
+
+    Returns:
+        bool: True when all ages are less than 150, False otherwise.
+    """
+    is_valid = True
+
+    for id in individuals:
+        person = individuals[id]
+        birth_date = person.get("DATE")
+        age = get_age(birth_date)
+        if age >= 150:
+            if is_valid:
+                print("ERROR: Individuals cannot be 150 or older!\n")
+                is_valid = False
+            print(f"{person.get('NAME')} (id {id}) was {age} years old.")
+
+    return is_valid
+
+
 def children_before_death(families, individuals):
-  for id in families:
-      if "CHIL" in families[id]:
-        if "HUSB" in families[id]:
-          husband = individuals[families[id]["HUSB"]]
-        if "WIFE" in families[id]:
-          wife = individuals[families[id]["WIFE"]]
-        if "DEATH_DATE" in husband:
-          husb_death = datetime.strptime(husband["DEATH_DATE"], "%d %b %Y")
-        else: 
-          husb_death = False
-        if "DEATH_DATE" in wife:
-          wife_death = datetime.strptime(wife["DEATH_DATE"], "%d %b %Y")
-        else: 
-          wife_death = False
-        for chil_id in families[id]["CHIL"]:
-          birth_child = individuals[chil_id]["DATE"]
-          if birth_child == "":
-            break
-          birth_child = datetime.strptime(birth_child, "%d %b %Y")
-          if (husb_death):
-            new_husb_death = husb_death + relativedelta(months=9)
-            if (birth_child > husb_death):
-              print("Error: Husband: '" + husband["NAME"] + "' death on " + husb_death.strftime("%d-%b-%Y") + " is impossible for child: '" + individuals[chil_id]["NAME"] + "' to be born on " + birth_child.strftime("%d-%b-%Y"))
-          if (wife_death):
-            if (birth_child > wife_death):
-              print("Error: Wife: '" + wife["NAME"] + "' death on " + wife_death.strftime("%d-%b-%Y") + " is impossible for child: '" + individuals[chil_id]["NAME"] + "' to be born on " + birth_child.strftime("%d-%b-%Y"))
+    for id in families:
+        if "CHIL" in families[id]:
+            if "HUSB" in families[id]:
+                husband = individuals[families[id]["HUSB"]]
+            if "WIFE" in families[id]:
+                wife = individuals[families[id]["WIFE"]]
+            if "DEATH_DATE" in husband:
+                husb_death = datetime.strptime(husband["DEATH_DATE"], "%d %b %Y")
+            else:
+                husb_death = False
+            if "DEATH_DATE" in wife:
+                wife_death = datetime.strptime(wife["DEATH_DATE"], "%d %b %Y")
+            else:
+                wife_death = False
+            for chil_id in families[id]["CHIL"]:
+                birth_child = individuals[chil_id]["DATE"]
+                if birth_child == "":
+                    break
+                birth_child = datetime.strptime(birth_child, "%d %b %Y")
+                if husb_death:
+                    new_husb_death = husb_death + relativedelta(months=9)
+                    if birth_child > husb_death:
+                        print(
+                            "Error: Husband: '"
+                            + husband["NAME"]
+                            + "' death on "
+                            + husb_death.strftime("%d-%b-%Y")
+                            + " is impossible for child: '"
+                            + individuals[chil_id]["NAME"]
+                            + "' to be born on "
+                            + birth_child.strftime("%d-%b-%Y")
+                        )
+                if wife_death:
+                    if birth_child > wife_death:
+                        print(
+                            "Error: Wife: '"
+                            + wife["NAME"]
+                            + "' death on "
+                            + wife_death.strftime("%d-%b-%Y")
+                            + " is impossible for child: '"
+                            + individuals[chil_id]["NAME"]
+                            + "' to be born on "
+                            + birth_child.strftime("%d-%b-%Y")
+                        )
+
+
+def check_birth_before_marriage(families: dict, individuals: dict) -> bool:
+    """Implements user story 2, ensuring each married couple is married after they were born.
+        Author: Ryan Hartman
+        Last Modified: 3/17/2021
+
+    Args:
+        families    (dict): A list of families to
+        individuals (dict): A list of individuals to lookup individuals in families.
+                            NOTE: Every spouse in each family MUST be in the individuals dict.
+    Throws:
+        IndexError:         When an individual in a family cannot be found in the individuals
+                            dictionary.
+
+    Returns:
+        bool: True when all marriages happen after birth, False otherwise.
+    """
+    is_valid = True
+
+    def print_error(family_id: str, family: dict, spouse: dict, is_valid: bool) -> None:
+        male = spouse["SEX"] == "M"
+        if is_valid:
+            print(f"ERROR: Individuals cannot be married before being born!\n")
+        print(
+            f"{'Husband' if male else 'Wife'} of family {family_id} was born {spouse['DATE']}, but got married on {family['MARR']}."
+        )
+
+    for id in families:
+        if "MARR" in families[id]:
+            marriage_date = datetime.strptime(families[id]["MARR"], "%d %b %Y")
+            husb_ID = families[id]["HUSB"]
+            wife_ID = families[id]["WIFE"]
+            husb_birthdate = datetime.strptime(
+                individuals[husb_ID].get("DATE"), "%d %b %Y"
+            )
+            wife_birthdate = datetime.strptime(
+                individuals[wife_ID].get("DATE"), "%d %b %Y"
+            )
+            if husb_birthdate >= marriage_date:
+                print_error(id, families[id], individuals[husb_ID], is_valid)
+                is_valid = False
+            if wife_birthdate >= marriage_date:
+                print_error(id, families[id], individuals[husb_ID], is_valid)
+                is_valid = False
+
+    return is_valid
 
 
 # Marriage before divorce
 def check_marriage_divorce_dates(families, individuals):
-  is_valid = True
-  for id in families:
-      if "DIV" in families[id]:
-        divorce_date = datetime.strptime(families[id]["DIV"], "%d %b %Y")
-        marriage_date = datetime.strptime(families[id]["MARR"], "%d %b %Y")
-        if divorce_date < marriage_date:
-          if (is_valid):
-            print("Divorce before marriage is not possible\n")
-          print("Husband: " + get_individual_name(families[id]["HUSB"], individuals).replace("/", "") + "\nWife: " + get_individual_name(families[id]["WIFE"], individuals).replace("/", ""))
-          print("\nMarriage: " + families[id]["MARR"])
-          print("Divorce: " + families[id]["DIV"])
-          is_valid = False
-  if not is_valid:
-    return False
-    sys.exit(1)
-  return True
+    is_valid = True
+    for id in families:
+        if "DIV" in families[id]:
+            divorce_date = datetime.strptime(families[id]["DIV"], "%d %b %Y")
+            marriage_date = datetime.strptime(families[id]["MARR"], "%d %b %Y")
+            if divorce_date < marriage_date:
+                if is_valid:
+                    print("Divorce before marriage is not possible\n")
+                print(
+                    "Husband: "
+                    + get_individual_name(families[id]["HUSB"], individuals).replace(
+                        "/", ""
+                    )
+                    + "\nWife: "
+                    + get_individual_name(families[id]["WIFE"], individuals).replace(
+                        "/", ""
+                    )
+                )
+                print("\nMarriage: " + families[id]["MARR"])
+                print("Divorce: " + families[id]["DIV"])
+                is_valid = False
+    if not is_valid:
+        return False
+        sys.exit(1)
+    return True
 
-#US05 - Marriage before Death
-def us_05(families,individuals):
+
+# US05 - Marriage before Death
+def us_05(families, individuals):
     is_valid = True
     for id in families:
         if "MARR" in families[id]:
             marriage_Date = datetime.strptime(families[id]["MARR"], "%d %b %Y").date()
             husb_ID = families[id]["HUSB"]
             wife_ID = families[id]["WIFE"]
-            if 'DEAT' in individuals[husb_ID]:
-                husbDeath = datetime.strptime(individuals[husb_ID]["DEATH_DATE"],"%d %b %Y").date()
+            if "DEAT" in individuals[husb_ID]:
+                husbDeath = datetime.strptime(
+                    individuals[husb_ID]["DEATH_DATE"], "%d %b %Y"
+                ).date()
                 if marriage_Date > husbDeath:
-                    print("ERROR: FAMILY: US05: Marriage occurred after death of husband (" + get_individual_name(husb_ID,individuals).replace("/","") + ").")
+                    print(
+                        "ERROR: FAMILY: US05: Marriage occurred after death of husband ("
+                        + get_individual_name(husb_ID, individuals).replace("/", "")
+                        + ")."
+                    )
                     is_valid = False
-            if 'DEAT' in individuals[wife_ID]:
-                wifeDeath = datetime.strptime(individuals[wife_ID]["DEATH_DATE"],"%d %b %Y").date()
+            if "DEAT" in individuals[wife_ID]:
+                wifeDeath = datetime.strptime(
+                    individuals[wife_ID]["DEATH_DATE"], "%d %b %Y"
+                ).date()
                 if marriage_Date > wifeDeath:
-                    print("ERROR: FAMILY: US05: Marriage occurred after death of wife (" + get_individual_name(wife_ID,individuals).replace("/","")+ ").")
+                    print(
+                        "ERROR: FAMILY: US05: Marriage occurred after death of wife ("
+                        + get_individual_name(wife_ID, individuals).replace("/", "")
+                        + ")."
+                    )
                     is_valid = False
     return is_valid
 
-#US10 - Marriage after 14
-def us_10(families,individuals):
+
+# US10 - Marriage after 14
+def us_10(families, individuals):
     is_valid = True
     for id in families:
         if "MARR" in families[id]:
             marriage_Date = datetime.strptime(families[id]["MARR"], "%d %b %Y").date()
             husb_ID = families[id]["HUSB"]
             wife_ID = families[id]["WIFE"]
-            husb_Bday = datetime.strptime(individuals[husb_ID]["DATE"], "%d %b %Y").date()
-            wife_Bday = datetime.strptime(individuals[wife_ID]["DATE"], "%d %b %Y").date()
+            husb_Bday = datetime.strptime(
+                individuals[husb_ID]["DATE"], "%d %b %Y"
+            ).date()
+            wife_Bday = datetime.strptime(
+                individuals[wife_ID]["DATE"], "%d %b %Y"
+            ).date()
             husb_Age = (marriage_Date - husb_Bday).days / 365
             wife_Age = (marriage_Date - wife_Bday).days / 365
             if husb_Age < 14 and wife_Age < 14:
-                print("ANOMALY: FAMILY: US10: Marriage happened before both husband ("+ get_individual_name(husb_ID,individuals).replace("/","") + ") and wife ("+get_individual_name(wife_ID,individuals).replace("/","")+ ") were 14.")
+                print(
+                    "ANOMALY: FAMILY: US10: Marriage happened before both husband ("
+                    + get_individual_name(husb_ID, individuals).replace("/", "")
+                    + ") and wife ("
+                    + get_individual_name(wife_ID, individuals).replace("/", "")
+                    + ") were 14."
+                )
                 is_valid = False
             elif husb_Age < 14:
-                print("ANOMALY: FAMILY: US10: Marriage happened before husband ("+ get_individual_name(husb_ID,individuals).replace("/","") +") was 14.")
+                print(
+                    "ANOMALY: FAMILY: US10: Marriage happened before husband ("
+                    + get_individual_name(husb_ID, individuals).replace("/", "")
+                    + ") was 14."
+                )
                 is_valid = False
             elif wife_Age < 14:
-                print("ANOMALY: FAMILY: US10: Marriage happened before wife ("+get_individual_name(wife_ID,individuals).replace("/","")+")was 14.")
+                print(
+                    "ANOMALY: FAMILY: US10: Marriage happened before wife ("
+                    + get_individual_name(wife_ID, individuals).replace("/", "")
+                    + ")was 14."
+                )
                 is_valid = False
     return is_valid
+
 
 def parse_GEDCOM(file_path):
     if not os.path.exists(file_path):
@@ -312,7 +450,7 @@ def parse_GEDCOM(file_path):
                 )
                 if tag == "NAME" and indi_id not in individuals and indi_id != "":
                     individuals[indi_id] = " ".join(arguments)
-    print_information()
+    # print_information()
 
 
 def print_usage(help: bool):
