@@ -193,9 +193,11 @@ def get_information(file_path):
     # children_before_death(families, individuals)
     # us_05(families,individuals)
     # us_10(families,individuals)
-    divorce_before_death(families, individuals)
+    # divorce_before_death(families, individuals)
     # us03
     # us08
+    us_16(families, individuals)
+    us_21(families,individuals)
 
 
 def check_age(individuals: dict) -> bool:
@@ -515,6 +517,35 @@ def us_08(families, individuals):
                 print("ERROR: FILE: US08: Marriage date not set or properly formatted of family: " + id + ".")
     return is_valid
 
+#US16 - Male last names
+def us_16(families,individuals):
+    is_valid = True
+    for id in families:
+        husb_name = get_individual_name(families[id]["HUSB"],individuals)
+        fam_lname = husb_name[husb_name.index("/") + 1:-1]
+        if "CHIL" in families[id]:
+            children_idList = families[id]["CHIL"]
+            for child in children_idList:
+                if individuals[child]["SEX"] == "M":
+                    child_name = get_individual_name(child,individuals)
+                    if child_name[child_name.index("/") + 1:-1] != fam_lname:
+                        print("ANOMALY: INDIVIDUAL: US16: " + get_individual_name(child,individuals).replace("/", "") + " does not have a matching family last name of "+fam_lname+"\n")
+                        is_valid = False
+    return is_valid
+
+#US21 - Correct gender for role
+def us_21(families,individuals):
+    is_valid = True
+    for id in families:
+        husb_id = families[id]["HUSB"]
+        wife_id = families[id]["WIFE"]
+        if(individuals[husb_id]["SEX"] != "M"):
+            print("ANOMALY: FAMILY: US21: Husband " +get_individual_name(husb_id,individuals).replace("/","") + " is not marked as male\n")
+            is_valid = False
+        if(individuals[wife_id]["SEX"] != "F"):
+            print("ANOMALY: FAMILY: US21: Wife "+ get_individual_name(wife_id,individuals).replace("/","") +" is not marked as female\n")
+            is_valid = False
+    return is_valid
 
 def parse_GEDCOM(file_path):
     if not os.path.exists(file_path):

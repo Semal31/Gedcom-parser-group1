@@ -10,7 +10,7 @@ from parser import (
     dates_before_current,
     divorce_before_death,
     us_03,
-    us_08
+    us_08, us_16, us_21
 )
 
 
@@ -395,9 +395,9 @@ def test_check_age_invalid():
     assert check_age(individuals) == False
     
 def test_dates_before_current_valid():
-    assert dates_before_current(myfamily.ged) == True
+    assert dates_before_current("myfamily.ged") == True
 def test_dates_before_current_invalid():
-    assert dates_before_current(testUS01_myfamily.ged) == False
+    assert dates_before_current("testUS01_myfamily.ged") == False
     
 def test_divorce_before_death_bothDead_invalid():
     families = {'@F1@': {'HUSB': '@I1@', 'WIFE': '@I2@', 'DATE': '15 APR 1999'}, '@F2@': {'HUSB': '@I3@', 'WIFE': '@I4@', 'CHIL': ['@I1@', '@I5@'], 'MARR': '8 AUG 1991', 'DIV': '30 DEC 2018'}, '@F3@': {'HUSB': '@I11@', 'WIFE': '@I12@', 'CHIL': ['@I3@'], 'MARR': 'Y'}, '@F4@': {'HUSB': '@I7@', 'WIFE': '@I8@', 'CHIL': ['@I4@', '@I9@', '@I10@'], 'MARR': 'Y'}, '@F5@': {'HUSB': '@I5@', 'WIFE': '@I6@', 'DATE': '31 JUL 2020'}, '@F6@': {'HUSB': '@I15@', 'WIFE': '@I16@', 'CHIL': ['@I7@'], 'MARR': ''}, '@F7@': {'HUSB': '@I13@', 'WIFE': '@I14@', 'CHIL': ['@I8@'], 'MARR': ''}, '@F8@': {'HUSB': '@I17@', 'WIFE': '@I16@', 'MARR': 'Y'}, '@F9@': {'HUSB': '@I1@', 'CHIL': ['@I18@']}}
@@ -433,3 +433,179 @@ def test_US08_invalid():
     families = {'@F1@': {'HUSB': '@I1@', 'WIFE': '@I2@', 'MARR': '15 APR 1999', 'CHIL': '@I3@'}}
     individuals = {'@I3@': {'NAME': 'Michael /Cooke/', 'SEX': 'M', 'BIRT': '', 'DATE': '2 DEC 1998', 'FAMC': '@F1@'}}
     assert us_08(families, individuals) == False
+
+def test_US16_valid():
+    #Male last names
+    families = {
+        "@F1@": {"HUSB": "@I1@", "WIFE": "@I2@", "DATE": "15 APR 1999"},
+        "@F2@": {
+            "HUSB": "@I1@",
+            "WIFE": "@I4@",
+            "CHIL": ["@I2@", "@I5@"],
+            "MARR": "8 AUG 1991",
+            "DIV": "30 DEC 2018",
+        },
+    }
+    individuals = {
+        "@I1@": {
+            "NAME": "Michael /Cooke/",
+            "SEX": "M",
+            "BIRT": "",
+            "DATE": "2 DEC 1962",
+            "DEAT": "",
+            "DEATH_DATE": "9 SEP 2007",
+            "FAMS": "@F2@",
+            "FAMC": "@F3@",
+        },
+        "@I2@": {
+            "NAME": "Henry /Cooke/",
+            "SEX": "M",
+            "BIRT": "",
+            "DATE": "2 DEC 2000",
+            "DEAT": "",
+            "DEATH_DATE": "9 SEP 2007",
+            "FAMS": "@F2@",
+            "FAMC": "@F3@",
+        },
+        "@I5@": {
+            "NAME": "Diana /Cooke/",
+            "SEX": "F",
+            "BIRT": "",
+            "DATE": "1 OCT 2000",
+            "FAMS": "@F2@",
+            "FAMC": "@F4@",
+        },
+    }
+    assert us_16(families, individuals) == True
+
+def test_US16_invalid():
+    #Male last names
+    families = {
+        "@F1@": {"HUSB": "@I1@", "WIFE": "@I2@", "DATE": "15 APR 1999"},
+        "@F2@": {
+            "HUSB": "@I1@",
+            "WIFE": "@I4@",
+            "CHIL": ["@I2@", "@I5@"],
+            "MARR": "8 AUG 1991",
+            "DIV": "30 DEC 2018",
+        },
+    }
+    individuals = {
+        "@I1@": {
+            "NAME": "Michael /Cooke/",
+            "SEX": "M",
+            "BIRT": "",
+            "DATE": "2 DEC 1962",
+            "DEAT": "",
+            "DEATH_DATE": "9 SEP 2007",
+            "FAMS": "@F2@",
+            "FAMC": "@F3@",
+        },
+        "@I2@": {
+            "NAME": "Henry /Smith/",
+            "SEX": "M",
+            "BIRT": "",
+            "DATE": "2 DEC 2000",
+            "DEAT": "",
+            "DEATH_DATE": "9 SEP 2007",
+            "FAMS": "@F2@",
+            "FAMC": "@F3@",
+        },
+        "@I5@": {
+            "NAME": "Diana /Cooke/",
+            "SEX": "F",
+            "BIRT": "",
+            "DATE": "1 OCT 2000",
+            "FAMS": "@F2@",
+            "FAMC": "@F4@",
+        },
+    }
+    assert us_16(families, individuals) == False
+
+def test_US21_valid():
+    #Correct gender for role
+    families = {
+        "@F1@": {"HUSB": "@I1@", "WIFE": "@I2@", "DATE": "15 APR 1999"},
+        "@F2@": {
+            "HUSB": "@I1@",
+            "WIFE": "@I4@",
+            "CHIL": ["@I2@", "@I5@"],
+            "MARR": "8 AUG 1991",
+            "DIV": "30 DEC 2018",
+        },
+    }
+    individuals = {
+        "@I1@": {
+            "NAME": "Michael /Cooke/",
+            "SEX": "M",
+            "BIRT": "",
+            "DATE": "2 DEC 1962",
+            "DEAT": "",
+            "DEATH_DATE": "9 SEP 2007",
+            "FAMS": "@F2@",
+            "FAMC": "@F3@",
+        },
+        "@I2@": {
+            "NAME": "Diana /Cooke/",
+            "SEX": "F",
+            "BIRT": "",
+            "DATE": "1 OCT 2000",
+            "FAMS": "@F2@",
+            "FAMC": "@F4@",
+        },
+        "@I4@": {
+            "NAME": "Theresa /Fox/",
+            "SEX": "F",
+            "BIRT": "",
+            "DATE": "2 DEC 2000",
+            "DEAT": "",
+            "DEATH_DATE": "9 SEP 2007",
+            "FAMS": "@F2@",
+            "FAMC": "@F3@",
+        },
+    }
+    assert us_21(families, individuals) == True
+
+def test_US21_invalid():
+    #Correct gender for role
+    families = {
+        "@F1@": {"HUSB": "@I1@", "WIFE": "@I2@", "DATE": "15 APR 1999"},
+        "@F2@": {
+            "HUSB": "@I1@",
+            "WIFE": "@I4@",
+            "CHIL": ["@I2@", "@I5@"],
+            "MARR": "8 AUG 1991",
+            "DIV": "30 DEC 2018",
+        },
+    }
+    individuals = {
+        "@I1@": {
+            "NAME": "Michael /Cooke/",
+            "SEX": "F",
+            "BIRT": "",
+            "DATE": "2 DEC 1962",
+            "DEAT": "",
+            "DEATH_DATE": "9 SEP 2007",
+            "FAMS": "@F2@",
+            "FAMC": "@F3@",
+        },
+        "@I2@": {
+            "NAME": "Diana /Cooke/",
+            "SEX": "F",
+            "BIRT": "",
+            "DATE": "1 OCT 2000",
+            "FAMS": "@F2@",
+            "FAMC": "@F4@",
+        },
+        "@I4@": {
+            "NAME": "Theresa /Fox/",
+            "SEX": "M",
+            "BIRT": "",
+            "DATE": "2 DEC 2000",
+            "DEAT": "",
+            "DEATH_DATE": "9 SEP 2007",
+            "FAMS": "@F2@",
+            "FAMC": "@F3@",
+        },
+    }
+    assert us_21(families, individuals) == False
