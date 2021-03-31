@@ -204,6 +204,75 @@ def get_information(file_path):
     # us_19(families, individuals)
 
 
+def siblings_do_not_marry(individuals: dict, families: dict) -> bool:
+    """Implements user story 18, checking if all siblings do not marry.
+        Author: Ryan Hartman
+        Last Modified: 3/31/2021
+
+    Args:
+        individuals (dict): A dict of individuals to check
+        families (dict): A dict of families to check
+
+    Returns:
+        bool: True when all siblings are not married, false otherwise.
+
+    Runtime:
+        Ω(1) (when the first family is an offending case)
+        Θ(n)
+        O(n)
+    """
+    for family in individuals.values():
+        if "HUSB" in family or "WIFE" in family:
+            husband = individuals.get(family["HUSB"])
+            wife = individuals.get(family["WIFE"])
+            if husband == None or wife == None:
+                raise ValueError(
+                    "Individuals dictionary did not contain an individual found in the families dictionary."
+                )
+            elif husband.get("FAMC") == wife.get("FAMC"):
+                return False
+
+    return True
+
+
+def siblings_could_be_born(individuals: dict, families: dict) -> bool:
+    """Implements user story 13, checking if all siblings in a family are born 9 months
+        from each other, or are born within one day of each other.
+        Twins can be born at 11:59pm and 12:00am, making them seperated by a day.
+        Author: Ryan Hartman
+        Last Modified: 3/31/2021
+
+    Args:
+        individuals (dict): A dict of individuals to check
+        families (dict): A dict of families to check
+
+    Returns:
+        bool: True when all siblings are not married, false otherwise.
+
+    Runtime:
+        Ω(1) (when the first family is an offending case)
+        Θ(n)
+        O(n)
+    """
+    for family in families.values():
+        if "CHIL" in family:
+            children = []
+            for child_id in family["CHIL"]:
+                children.append(individuals[child_id])
+            birth_dates = list(map(lambda child: child.get("DATE"), children))
+            for date in birth_dates:
+                for second_date in birth_dates:
+                    # Make sure the time delta is correct:
+                    delta = (
+                        date - second_date if date > second_date else second_date - date
+                    )
+                    if delta.days >= 2 and delta.days < 243:
+                        # 30.42 * 8 = 243.36 (30.42 average days in a month)
+                        return False
+
+    return True
+
+
 def check_age(individuals: dict) -> bool:
     """Implements user story 7, ensuring each individual is less than 150 years old.
         Author: Ryan Hartman
@@ -229,70 +298,107 @@ def check_age(individuals: dict) -> bool:
 
     return is_valid
 
+
 def fewer_than_15_children(families):
-  is_valid = True
-  children = 0
-  for id in families:
-    if "CHIL" in families[id]:
-      for chil_id in families[id]["CHIL"]:
-        children+=1
-  if (children >= 15):
-    is_valid = False
-    print("Error: family '" + id + "' has more than 14 children")
-  return is_valid
+    is_valid = True
+    children = 0
+    for id in families:
+        if "CHIL" in families[id]:
+            for chil_id in families[id]["CHIL"]:
+                children += 1
+    if children >= 15:
+        is_valid = False
+        print("Error: family '" + id + "' has more than 14 children")
+    return is_valid
 
 
 def uncle_aunts_cannot_marry_nieces_nephews(families, individuals):
-  is_valid = True
-  husb_sib_ids = []
-  wife_sib_ids = []
-  for id in families:
-    if "CHIL" in families[id]:
-      if "HUSB" in families[id]:
-        husb_id = families[id]["HUSB"]
-        for id2 in families:
-          if "CHIL" in families[id2]:
-            if husb_id in families[id2]["CHIL"]:
-              for chil_id in families[id2]["CHIL"]:
-                if (chil_id != husb_id):
-                  husb_sib_ids.append(chil_id)
-      if "WIFE" in families[id]:
-        wife_id = families[id]["WIFE"]
-        for id3 in families:
-          if "CHIL" in families[id3]:
-            if wife_id in families[id3]["CHIL"]:
-              for chil_id2 in families[id3]["CHIL"]:
-                if (chil_id2 != wife_id):
-                  wife_sib_ids.append(chil_id2)
-      for husb_sib in husb_sib_ids:
-        if "FAMS" in individuals[husb_sib]:
-          if individuals[husb_sib]["SEX"] == 'M':
-            if "WIFE" in families[individuals[husb_sib]["FAMS"]]:
-              for chil_id3 in families[id]["CHIL"]:
-                if families[individuals[husb_sib]["FAMS"]]["WIFE"] == chil_id3:
-                  is_valid = False
-                  print("Error: Uncle '" + individuals[husb_sib]["NAME"] + "' is married to niece '" + individuals[chil_id3]["NAME"] + "'" )
-          else:
-            if "HUSB" in families[individuals[husb_sib]["FAMS"]]:
-              for chil_id4 in families[id]["CHIL"]:
-                if families[individuals[husb_sib]["FAMS"]]["HUSB"] == chil_id4:
-                  is_valid = False
-                  print("Error: Aunt '" + individuals[husb_sib]["NAME"] + "' is married to nephew '" + individuals[chil_id4]["NAME"] + "'" )
-      for wife_sib in wife_sib_ids:
-        if "FAMS" in individuals[wife_sib]:
-          if individuals[wife_sib]["SEX"] == 'M':
-            if "WIFE" in families[individuals[wife_sib]["FAMS"]]:
-              for chil_id5 in families[id]["CHIL"]:
-                if families[individuals[wife_sib]["FAMS"]]["WIFE"] == chil_id5:
-                  is_valid = False
-                  print("Error: Uncle '" + individuals[wife_sib]["NAME"] + "' is married to niece '" + individuals[chil_id5]["NAME"] + "'" )
-          else:
-            if "HUSB" in families[individuals[wife_sib]["FAMS"]]:
-              for chil_id6 in families[id]["CHIL"]:
-                if families[individuals[wife_sib]["FAMS"]]["HUSB"] == chil_id6:
-                  is_valid = False
-                  print("Error: Aunt '" + individuals[wife_sib]["NAME"] + "' is married to nephew '" + individuals[chil_id6]["NAME"] + "'" )
-  return is_valid
+    is_valid = True
+    husb_sib_ids = []
+    wife_sib_ids = []
+    for id in families:
+        if "CHIL" in families[id]:
+            if "HUSB" in families[id]:
+                husb_id = families[id]["HUSB"]
+                for id2 in families:
+                    if "CHIL" in families[id2]:
+                        if husb_id in families[id2]["CHIL"]:
+                            for chil_id in families[id2]["CHIL"]:
+                                if chil_id != husb_id:
+                                    husb_sib_ids.append(chil_id)
+            if "WIFE" in families[id]:
+                wife_id = families[id]["WIFE"]
+                for id3 in families:
+                    if "CHIL" in families[id3]:
+                        if wife_id in families[id3]["CHIL"]:
+                            for chil_id2 in families[id3]["CHIL"]:
+                                if chil_id2 != wife_id:
+                                    wife_sib_ids.append(chil_id2)
+            for husb_sib in husb_sib_ids:
+                if "FAMS" in individuals[husb_sib]:
+                    if individuals[husb_sib]["SEX"] == "M":
+                        if "WIFE" in families[individuals[husb_sib]["FAMS"]]:
+                            for chil_id3 in families[id]["CHIL"]:
+                                if (
+                                    families[individuals[husb_sib]["FAMS"]]["WIFE"]
+                                    == chil_id3
+                                ):
+                                    is_valid = False
+                                    print(
+                                        "Error: Uncle '"
+                                        + individuals[husb_sib]["NAME"]
+                                        + "' is married to niece '"
+                                        + individuals[chil_id3]["NAME"]
+                                        + "'"
+                                    )
+                    else:
+                        if "HUSB" in families[individuals[husb_sib]["FAMS"]]:
+                            for chil_id4 in families[id]["CHIL"]:
+                                if (
+                                    families[individuals[husb_sib]["FAMS"]]["HUSB"]
+                                    == chil_id4
+                                ):
+                                    is_valid = False
+                                    print(
+                                        "Error: Aunt '"
+                                        + individuals[husb_sib]["NAME"]
+                                        + "' is married to nephew '"
+                                        + individuals[chil_id4]["NAME"]
+                                        + "'"
+                                    )
+            for wife_sib in wife_sib_ids:
+                if "FAMS" in individuals[wife_sib]:
+                    if individuals[wife_sib]["SEX"] == "M":
+                        if "WIFE" in families[individuals[wife_sib]["FAMS"]]:
+                            for chil_id5 in families[id]["CHIL"]:
+                                if (
+                                    families[individuals[wife_sib]["FAMS"]]["WIFE"]
+                                    == chil_id5
+                                ):
+                                    is_valid = False
+                                    print(
+                                        "Error: Uncle '"
+                                        + individuals[wife_sib]["NAME"]
+                                        + "' is married to niece '"
+                                        + individuals[chil_id5]["NAME"]
+                                        + "'"
+                                    )
+                    else:
+                        if "HUSB" in families[individuals[wife_sib]["FAMS"]]:
+                            for chil_id6 in families[id]["CHIL"]:
+                                if (
+                                    families[individuals[wife_sib]["FAMS"]]["HUSB"]
+                                    == chil_id6
+                                ):
+                                    is_valid = False
+                                    print(
+                                        "Error: Aunt '"
+                                        + individuals[wife_sib]["NAME"]
+                                        + "' is married to nephew '"
+                                        + individuals[chil_id6]["NAME"]
+                                        + "'"
+                                    )
+    return is_valid
 
 
 # Children born before parents death
@@ -453,9 +559,9 @@ def dates_before_current(file_path):
         return True
     else:
         return False
-    
-    
-#US06 - Divorce before death
+
+
+# US06 - Divorce before death
 def divorce_before_death(families, individuals):
     count = 0
     for id in families:
@@ -464,28 +570,63 @@ def divorce_before_death(families, individuals):
             print(div_date)
             husb_ID = families[id]["HUSB"]
             wife_ID = families[id]["WIFE"]
-            if 'DEAT' in individuals[husb_ID] and 'DEAT' in individuals[wife_ID]:
-                husbDeath = datetime.strptime(individuals[husb_ID]["DEATH_DATE"], "%d %b %Y")
-                wifeDeath = datetime.strptime(individuals[wife_ID]["DEATH_DATE"], "%d %b %Y")
+            if "DEAT" in individuals[husb_ID] and "DEAT" in individuals[wife_ID]:
+                husbDeath = datetime.strptime(
+                    individuals[husb_ID]["DEATH_DATE"], "%d %b %Y"
+                )
+                wifeDeath = datetime.strptime(
+                    individuals[wife_ID]["DEATH_DATE"], "%d %b %Y"
+                )
                 if div_date > husbDeath and div_date > wifeDeath:
                     count += 1
-                    print("ERROR: FAMILY: US06: Divorce between " + "'" + get_individual_name(husb_ID, individuals).replace("/", "") + "' and '" + get_individual_name(wife_ID, individuals).replace("/", "") + "' cannot occur after both partners' deaths.")
-            elif 'DEAT' in individuals[husb_ID]:
-                husbDeath = datetime.strptime(individuals[husb_ID]["DEATH_DATE"], "%d %b %Y")
+                    print(
+                        "ERROR: FAMILY: US06: Divorce between "
+                        + "'"
+                        + get_individual_name(husb_ID, individuals).replace("/", "")
+                        + "' and '"
+                        + get_individual_name(wife_ID, individuals).replace("/", "")
+                        + "' cannot occur after both partners' deaths."
+                    )
+            elif "DEAT" in individuals[husb_ID]:
+                husbDeath = datetime.strptime(
+                    individuals[husb_ID]["DEATH_DATE"], "%d %b %Y"
+                )
                 if div_date > husbDeath:
                     count += 1
-                    print("ERROR: FAMILY: US06: Divorce between " + "'" + get_individual_name(husb_ID, individuals).replace("/", "") + "' and '" + get_individual_name(wife_ID, individuals).replace("/", "") + "' cannot occur after " + get_individual_name(husb_ID, individuals).replace("/", "") + "'s death.")
-            elif 'DEAT' in individuals[wife_ID]:
-                wifeDeath = datetime.strptime(individuals[wife_ID]["DEATH_DATE"], "%d %b %Y")
+                    print(
+                        "ERROR: FAMILY: US06: Divorce between "
+                        + "'"
+                        + get_individual_name(husb_ID, individuals).replace("/", "")
+                        + "' and '"
+                        + get_individual_name(wife_ID, individuals).replace("/", "")
+                        + "' cannot occur after "
+                        + get_individual_name(husb_ID, individuals).replace("/", "")
+                        + "'s death."
+                    )
+            elif "DEAT" in individuals[wife_ID]:
+                wifeDeath = datetime.strptime(
+                    individuals[wife_ID]["DEATH_DATE"], "%d %b %Y"
+                )
                 if div_date > wifeDeath:
                     count += 1
-                    print("ERROR: FAMILY: US06: Divorce between " + "'" + get_individual_name(husb_ID, individuals).replace("/", "") + "' and '" + get_individual_name(wife_ID, individuals).replace("/", "") + "' cannot occur after " + get_individual_name(wife_ID, individuals).replace("/", "") + "'s death.")
+                    print(
+                        "ERROR: FAMILY: US06: Divorce between "
+                        + "'"
+                        + get_individual_name(husb_ID, individuals).replace("/", "")
+                        + "' and '"
+                        + get_individual_name(wife_ID, individuals).replace("/", "")
+                        + "' cannot occur after "
+                        + get_individual_name(wife_ID, individuals).replace("/", "")
+                        + "'s death."
+                    )
     if count == 0:
         return True
     else:
         return False
-#US05 - Marriage before Death
-def us_05(families,individuals):
+
+
+# US05 - Marriage before Death
+def us_05(families, individuals):
     is_valid = True
     for id in families:
         if "MARR" in families[id]:
@@ -558,77 +699,119 @@ def us_10(families, individuals):
                 is_valid = False
     return is_valid
 
-#US03 - Birth before death
+
+# US03 - Birth before death
 def us_03(individuals):
     is_valid = True
     for id in individuals:
         if "DEATH_DATE" in individuals[id]:
-            birthDate, deathDate  = datetime.strptime(individuals[id]["DATE"],"%d %b %Y").date(), datetime.strptime(individuals[id]["DEATH_DATE"],"%d %b %Y").date()
+            birthDate, deathDate = (
+                datetime.strptime(individuals[id]["DATE"], "%d %b %Y").date(),
+                datetime.strptime(individuals[id]["DEATH_DATE"], "%d %b %Y").date(),
+            )
             if birthDate > deathDate:
-                print("ERROR: INDIVIDUAL: US03: Birth occurred after death of individual: " + individuals[id]["NAME"].replace("/","") + " (id: " + id + ").")
+                print(
+                    "ERROR: INDIVIDUAL: US03: Birth occurred after death of individual: "
+                    + individuals[id]["NAME"].replace("/", "")
+                    + " (id: "
+                    + id
+                    + ")."
+                )
                 is_valid = False
     return is_valid
 
-#US08 - Birth before marriage of parents
+
+# US08 - Birth before marriage of parents
 def us_08(families, individuals):
     is_valid = True
     for id in families:
         if "MARR" in families[id]:
             # Check for edge case of MARR not containing date
             if "DATE" in families[id]:
-                marriageDate = datetime.strptime(families[id]["DATE"], "%d %b %Y").date()
+                marriageDate = datetime.strptime(
+                    families[id]["DATE"], "%d %b %Y"
+                ).date()
                 for childID in families[id]["CHIL"]:
-                    childBirthDate = datetime.strptime(individuals[childID]["DATE"], "%d %b %Y").date()
+                    childBirthDate = datetime.strptime(
+                        individuals[childID]["DATE"], "%d %b %Y"
+                    ).date()
                     if childBirthDate < marriageDate:
-                        print("ANOMALY: FAMILY: US08: Child (" + get_individual_name(childID,individuals).replace("/","") + ") born before marriage of parents in family: " + id + ".")
+                        print(
+                            "ANOMALY: FAMILY: US08: Child ("
+                            + get_individual_name(childID, individuals).replace("/", "")
+                            + ") born before marriage of parents in family: "
+                            + id
+                            + "."
+                        )
                         is_valid = False
             else:
-                print("ERROR: FILE: US08: Marriage date not set or properly formatted of family: " + id + ".")
+                print(
+                    "ERROR: FILE: US08: Marriage date not set or properly formatted of family: "
+                    + id
+                    + "."
+                )
                 is_valid = False
     return is_valid
 
-#US16 - Male last names
-def us_16(families,individuals):
+
+# US16 - Male last names
+def us_16(families, individuals):
     is_valid = True
     for id in families:
-        husb_name = get_individual_name(families[id]["HUSB"],individuals)
-        fam_lname = husb_name[husb_name.index("/") + 1:-1]
+        husb_name = get_individual_name(families[id]["HUSB"], individuals)
+        fam_lname = husb_name[husb_name.index("/") + 1 : -1]
         if "CHIL" in families[id]:
             children_idList = families[id]["CHIL"]
             for child in children_idList:
                 if individuals[child]["SEX"] == "M":
-                    child_name = get_individual_name(child,individuals)
-                    if child_name[child_name.index("/") + 1:-1] != fam_lname:
-                        print("ANOMALY: INDIVIDUAL: US16: " + get_individual_name(child,individuals).replace("/", "") + " does not have a matching family last name of "+fam_lname+"\n")
+                    child_name = get_individual_name(child, individuals)
+                    if child_name[child_name.index("/") + 1 : -1] != fam_lname:
+                        print(
+                            "ANOMALY: INDIVIDUAL: US16: "
+                            + get_individual_name(child, individuals).replace("/", "")
+                            + " does not have a matching family last name of "
+                            + fam_lname
+                            + "\n"
+                        )
                         is_valid = False
     return is_valid
 
-#US21 - Correct gender for role
-def us_21(families,individuals):
+
+# US21 - Correct gender for role
+def us_21(families, individuals):
     is_valid = True
     for id in families:
         husb_id = families[id]["HUSB"]
         wife_id = families[id]["WIFE"]
-        if(individuals[husb_id]["SEX"] != "M"):
-            print("ANOMALY: FAMILY: US21: Husband " +get_individual_name(husb_id,individuals).replace("/","") + " is not marked as male\n")
+        if individuals[husb_id]["SEX"] != "M":
+            print(
+                "ANOMALY: FAMILY: US21: Husband "
+                + get_individual_name(husb_id, individuals).replace("/", "")
+                + " is not marked as male\n"
+            )
             is_valid = False
-        if(individuals[wife_id]["SEX"] != "F"):
-            print("ANOMALY: FAMILY: US21: Wife "+ get_individual_name(wife_id,individuals).replace("/","") +" is not marked as female\n")
+        if individuals[wife_id]["SEX"] != "F":
+            print(
+                "ANOMALY: FAMILY: US21: Wife "
+                + get_individual_name(wife_id, individuals).replace("/", "")
+                + " is not marked as female\n"
+            )
             is_valid = False
     return is_valid
 
-#US14 - Multiple births <= 5
+
+# US14 - Multiple births <= 5
 def us_14(families, individuals):
     is_valid = True
     for id in families:
         # Check for families with kids
         if "CHIL" in families[id]:
             # Check 5 or more children case before checking individual records
-            if len(families[id]['CHIL']) >= 5:
+            if len(families[id]["CHIL"]) >= 5:
                 childBirthdays = {}
-                for child in families[id]['CHIL']:
+                for child in families[id]["CHIL"]:
                     # increment dict if born on same day or append
-                    birthday = individuals[child]['DATE']
+                    birthday = individuals[child]["DATE"]
                     if not birthday in childBirthdays:
                         childBirthdays[birthday] = 1
                     else:
@@ -636,18 +819,24 @@ def us_14(families, individuals):
                 # Check if more than 5 births on same day
                 for birthdate in childBirthdays:
                     if childBirthdays[birthdate] >= 5:
-                        print("ANOMALY: FAMILY: US14: 5 or more children are born on " + birthdate + ' in family ' + id)
+                        print(
+                            "ANOMALY: FAMILY: US14: 5 or more children are born on "
+                            + birthdate
+                            + " in family "
+                            + id
+                        )
                         is_valid = False
     return is_valid
 
-#US19 - First cousins should not marry
+
+# US19 - First cousins should not marry
 def us_19(families, individuals):
     is_valid = True
     for id in families:
         grandChildren = []
         if "CHIL" in families[id]:
             # Iterate through children to get grandchildren
-            for child in families[id]['CHIL']:
+            for child in families[id]["CHIL"]:
                 if "FAMS" in individuals[child]:
                     family = individuals[child]["FAMS"]
                     if "CHIL" in families[family]:
@@ -660,10 +849,26 @@ def us_19(families, individuals):
                     for id in grandChildren:
                         if not id == person:
                             if "MARR" in families[individuals[person]["FAMS"]]:
-                                if families[individuals[person]["FAMS"]]["HUSB"] == person and families[individuals[person]["FAMS"]]["WIFE"] == id or families[individuals[person]["FAMS"]]["HUSB"] == id and families[individuals[person]["FAMS"]]["WIFE"] == person:
-                                    print("ANOMALY: FAMILY: US19: First cousins (" + person + " " + id + ") should not marry")
+                                if (
+                                    families[individuals[person]["FAMS"]]["HUSB"]
+                                    == person
+                                    and families[individuals[person]["FAMS"]]["WIFE"]
+                                    == id
+                                    or families[individuals[person]["FAMS"]]["HUSB"]
+                                    == id
+                                    and families[individuals[person]["FAMS"]]["WIFE"]
+                                    == person
+                                ):
+                                    print(
+                                        "ANOMALY: FAMILY: US19: First cousins ("
+                                        + person
+                                        + " "
+                                        + id
+                                        + ") should not marry"
+                                    )
                                     is_valid = False
     return is_valid
+
 
 def parse_GEDCOM(file_path):
     if not os.path.exists(file_path):
