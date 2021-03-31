@@ -196,6 +196,8 @@ def get_information(file_path):
     # divorce_before_death(families, individuals)
     # us03
     # us08
+    fewer_than_15_children(families)
+    uncle_aunts_cannot_marry_nieces_nephews(families, individuals)
     us_16(families, individuals)
     us_21(families,individuals)
 
@@ -224,6 +226,71 @@ def check_age(individuals: dict) -> bool:
             print(f"{person.get('NAME')} (id {id}) was {age} years old.")
 
     return is_valid
+
+def fewer_than_15_children(families):
+  is_valid = True
+  children = 0
+  for id in families:
+    if "CHIL" in families[id]:
+      for chil_id in families[id]["CHIL"]:
+        children+=1
+  if (children >= 15):
+    is_valid = False
+    print("Error: family '" + id + "' has more than 14 children")
+  return is_valid
+
+
+def uncle_aunts_cannot_marry_nieces_nephews(families, individuals):
+  is_valid = True
+  husb_sib_ids = []
+  wife_sib_ids = []
+  for id in families:
+    if "CHIL" in families[id]:
+      if "HUSB" in families[id]:
+        husb_id = families[id]["HUSB"]
+        for id2 in families:
+          if "CHIL" in families[id2]:
+            if husb_id in families[id2]["CHIL"]:
+              for chil_id in families[id2]["CHIL"]:
+                if (chil_id != husb_id):
+                  husb_sib_ids.append(chil_id)
+      if "WIFE" in families[id]:
+        wife_id = families[id]["WIFE"]
+        for id3 in families:
+          if "CHIL" in families[id3]:
+            if wife_id in families[id3]["CHIL"]:
+              for chil_id2 in families[id3]["CHIL"]:
+                if (chil_id2 != wife_id):
+                  wife_sib_ids.append(chil_id2)
+      for husb_sib in husb_sib_ids:
+        if "FAMS" in individuals[husb_sib]:
+          if individuals[husb_sib]["SEX"] == 'M':
+            if "WIFE" in families[individuals[husb_sib]["FAMS"]]:
+              for chil_id3 in families[id]["CHIL"]:
+                if families[individuals[husb_sib]["FAMS"]]["WIFE"] == chil_id3:
+                  is_valid = False
+                  print("Error: Uncle '" + individuals[husb_sib]["NAME"] + "' is married to niece '" + individuals[chil_id3]["NAME"] + "'" )
+          else:
+            if "HUSB" in families[individuals[husb_sib]["FAMS"]]:
+              for chil_id4 in families[id]["CHIL"]:
+                if families[individuals[husb_sib]["FAMS"]]["HUSB"] == chil_id4:
+                  is_valid = False
+                  print("Error: Aunt '" + individuals[husb_sib]["NAME"] + "' is married to nephew '" + individuals[chil_id4]["NAME"] + "'" )
+      for wife_sib in wife_sib_ids:
+        if "FAMS" in individuals[wife_sib]:
+          if individuals[wife_sib]["SEX"] == 'M':
+            if "WIFE" in families[individuals[wife_sib]["FAMS"]]:
+              for chil_id5 in families[id]["CHIL"]:
+                if families[individuals[wife_sib]["FAMS"]]["WIFE"] == chil_id5:
+                  is_valid = False
+                  print("Error: Uncle '" + individuals[wife_sib]["NAME"] + "' is married to niece '" + individuals[chil_id5]["NAME"] + "'" )
+          else:
+            if "HUSB" in families[individuals[wife_sib]["FAMS"]]:
+              for chil_id6 in families[id]["CHIL"]:
+                if families[individuals[wife_sib]["FAMS"]]["HUSB"] == chil_id6:
+                  is_valid = False
+                  print("Error: Aunt '" + individuals[wife_sib]["NAME"] + "' is married to nephew '" + individuals[chil_id6]["NAME"] + "'" )
+  return is_valid
 
 
 # Children born before parents death
