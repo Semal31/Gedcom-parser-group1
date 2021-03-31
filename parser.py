@@ -194,12 +194,14 @@ def get_information(file_path):
     # us_05(families,individuals)
     # us_10(families,individuals)
     # divorce_before_death(families, individuals)
-    # us03
-    # us08
-    fewer_than_15_children(families)
-    uncle_aunts_cannot_marry_nieces_nephews(families, individuals)
-    us_16(families, individuals)
-    us_21(families,individuals)
+    # us_03(individuals)
+    # us_08(families,individuals)
+    # fewer_than_15_children(families)
+    # uncle_aunts_cannot_marry_nieces_nephews(families, individuals)
+    # us_16(families, individuals)
+    # us_21(families,individuals)
+    # us_14(families,individuals)
+    # us_19(families, individuals)
 
 
 def check_age(individuals: dict) -> bool:
@@ -573,15 +575,16 @@ def us_08(families, individuals):
     for id in families:
         if "MARR" in families[id]:
             # Check for edge case of MARR not containing date
-            try:
-                marriageDate = datetime.strptime(families[id]["MARR"], "%d %b %Y").date()
+            if "DATE" in families[id]:
+                marriageDate = datetime.strptime(families[id]["DATE"], "%d %b %Y").date()
                 for childID in families[id]["CHIL"]:
                     childBirthDate = datetime.strptime(individuals[childID]["DATE"], "%d %b %Y").date()
                     if childBirthDate < marriageDate:
                         print("ANOMALY: FAMILY: US08: Child (" + get_individual_name(childID,individuals).replace("/","") + ") born before marriage of parents in family: " + id + ".")
                         is_valid = False
-            except:
+            else:
                 print("ERROR: FILE: US08: Marriage date not set or properly formatted of family: " + id + ".")
+                is_valid = False
     return is_valid
 
 #US16 - Male last names
@@ -612,6 +615,54 @@ def us_21(families,individuals):
         if(individuals[wife_id]["SEX"] != "F"):
             print("ANOMALY: FAMILY: US21: Wife "+ get_individual_name(wife_id,individuals).replace("/","") +" is not marked as female\n")
             is_valid = False
+    return is_valid
+
+#US14 - Multiple births <= 5
+def us_14(families, individuals):
+    is_valid = True
+    for id in families:
+        # Check for families with kids
+        if "CHIL" in families[id]:
+            # Check 5 or more children case before checking individual records
+            if len(families[id]['CHIL']) >= 5:
+                childBirthdays = {}
+                for child in families[id]['CHIL']:
+                    # increment dict if born on same day or append
+                    birthday = individuals[child]['DATE']
+                    if not birthday in childBirthdays:
+                        childBirthdays[birthday] = 1
+                    else:
+                        childBirthdays[birthday] += 1
+                # Check if more than 5 births on same day
+                for birthdate in childBirthdays:
+                    if childBirthdays[birthdate] >= 5:
+                        print("ANOMALY: FAMILY: US14: 5 or more children are born on " + birthdate + ' in family ' + id)
+                        is_valid = False
+    return is_valid
+
+#US19 - First cousins should not marry
+def us_19(families, individuals):
+    is_valid = True
+    for id in families:
+        grandChildren = []
+        if "CHIL" in families[id]:
+            # Iterate through children to get grandchildren
+            for child in families[id]['CHIL']:
+                if "FAMS" in individuals[child]:
+                    family = individuals[child]["FAMS"]
+                    if "CHIL" in families[family]:
+                        for gChild in families[family]["CHIL"]:
+                            grandChildren.append(gChild)
+            # Iterate through grand children to determine if married to one another
+            for person in grandChildren:
+                # Check if sharing same FAMS with cousins ( family in which an individual appears as a spouse )
+                if "FAMS" in individuals[person]:
+                    for id in grandChildren:
+                        if not id == person:
+                            if "MARR" in families[individuals[person]["FAMS"]]:
+                                if families[individuals[person]["FAMS"]]["HUSB"] == person and families[individuals[person]["FAMS"]]["WIFE"] == id or families[individuals[person]["FAMS"]]["HUSB"] == id and families[individuals[person]["FAMS"]]["WIFE"] == person:
+                                    print("ANOMALY: FAMILY: US19: First cousins (" + person + " " + id + ") should not marry")
+                                    is_valid = False
     return is_valid
 
 def parse_GEDCOM(file_path):

@@ -9,7 +9,7 @@ from parser import (
     check_age,
     dates_before_current,
     divorce_before_death,
-    us_03,
+    us_03, us_14, us_19,
     us_08, us_16, us_21,
     fewer_than_15_children,
     uncle_aunts_cannot_marry_nieces_nephews
@@ -427,7 +427,7 @@ def test_US03_invalid():
     assert us_03(individuals) == False
 
 def test_US08_valid():
-    families = {'@F1@': {'HUSB': '@I1@', 'WIFE': '@I2@', 'MARR': '15 APR 1999'}}
+    families = {'@F1@': {'HUSB': '@I1@', 'WIFE': '@I2@', 'DATE': '15 APR 1999'}}
     individuals = {'@I3@': {'NAME': 'Michael /Cooke/', 'SEX': 'M', 'BIRT': '', 'DATE': '2 DEC 2000', 'FAMC': '@F1@'}}
     assert us_08(families, individuals) == True
 
@@ -435,6 +435,51 @@ def test_US08_invalid():
     families = {'@F1@': {'HUSB': '@I1@', 'WIFE': '@I2@', 'MARR': '15 APR 1999', 'CHIL': '@I3@'}}
     individuals = {'@I3@': {'NAME': 'Michael /Cooke/', 'SEX': 'M', 'BIRT': '', 'DATE': '2 DEC 1998', 'FAMC': '@F1@'}}
     assert us_08(families, individuals) == False
+
+def test_US14_valid():
+    families = {'@F1@': {'HUSB': '@I1@', 'WIFE': '@I2@', 'MARR': '15 APR 1999',
+                         'CHIL': ['@I3@', '@I4@', '@I5@', '@I6@', '@I7@']}}
+    individuals = {'@I3@': {'NAME': 'Michael /Cooke/', 'BIRT': '', 'DATE': '2 DEC 1962', 'FAMC': '@F1@'},
+                   '@I4@': {'NAME': 'Michael /Cooke/', 'BIRT': '', 'DATE': '3 DEC 1962', 'FAMC': '@F1@'},
+                   '@I5@': {'NAME': 'Michael /Cooke/', 'BIRT': '', 'DATE': '7 DEC 1962', 'FAMC': '@F1@'},
+                   '@I6@': {'NAME': 'Michael /Cooke/', 'BIRT': '', 'DATE': '2 DEC 1962', 'FAMC': '@F1@'},
+                   '@I7@': {'NAME': 'Michael /Cooke/', 'BIRT': '', 'DATE': '5 DEC 1962', 'FAMC': '@F1@'}, }
+    assert us_14(families, individuals) == True
+
+def test_US14_invalid():
+    families = {'@F1@': {'HUSB': '@I1@', 'WIFE': '@I2@', 'MARR': '15 APR 1999',
+                         'CHIL': ['@I3@', '@I4@', '@I5@', '@I6@', '@I7@']}}
+    individuals = {'@I3@': {'NAME': 'Michael /Cooke/', 'BIRT': '', 'DATE': '2 DEC 1962', 'FAMC': '@F1@'},
+                   '@I4@': {'NAME': 'Michael /Cooke/', 'BIRT': '', 'DATE': '2 DEC 1962', 'FAMC': '@F1@'},
+                   '@I5@': {'NAME': 'Michael /Cooke/', 'BIRT': '', 'DATE': '2 DEC 1962', 'FAMC': '@F1@'},
+                   '@I6@': {'NAME': 'Michael /Cooke/', 'BIRT': '', 'DATE': '2 DEC 1962', 'FAMC': '@F1@'},
+                   '@I7@': {'NAME': 'Michael /Cooke/', 'BIRT': '', 'DATE': '2 DEC 1962', 'FAMC': '@F1@'}, }
+    assert us_14(families, individuals) == False
+
+def test_US19_valid():
+    families = {'@F1@': {'HUSB': '@I1@', 'WIFE': '', 'MARR': '15 APR 1999'},
+                '@F2@': {'HUSB': '@I2@', 'WIFE': '', 'MARR': '15 APR 1999'},
+                '@F3@': {'HUSB': '@I3@', 'WIFE': '', 'MARR': '15 APR 1999'},
+                '@F4@': {'HUSB': '@I4@', 'WIFE': '@I5@', 'MARR': '15 APR 1999'}}
+    individuals = {'@I1@': {'NAME': 'Michael /Cooke/', 'SEX': 'M', 'BIRT': '', 'DATE': '2 DEC 2000', 'FAMS': '@F1@'},
+                   '@I2@': {'NAME': 'Michael /Cooke/', 'SEX': 'M', 'BIRT': '', 'DATE': '2 DEC 2000', 'FAMC': '@F1@', 'FAMS': '@F2@'},
+                   '@I3@': {'NAME': 'Michael /Cooke/', 'SEX': 'M', 'BIRT': '', 'DATE': '2 DEC 2000', 'FAMS': '@F3@'},
+                   '@I4@': {'NAME': 'Michael /Cooke/', 'SEX': 'M', 'BIRT': '', 'DATE': '2 DEC 2000', 'FAMC': '@F2@', 'FAMS': '@F4@'},
+                   '@I5@': {'NAME': 'Michael /Cooke/', 'SEX': 'F', 'BIRT': '', 'DATE': '2 DEC 2000', 'FAMC': '@F3@', 'FAMS': '@F4@'}}
+    assert us_19(families, individuals) == True
+
+
+def test_US19_invalid():
+    families = {'@F1@': {'HUSB': '@I1@', 'WIFE': '', 'MARR': '15 APR 1999', 'CHIL': ['@I2@', '@I3@']},
+                '@F2@': {'HUSB': '@I2@', 'WIFE': '', 'MARR': '15 APR 1999', 'CHIL': ['@I4@']},
+                '@F3@': {'HUSB': '@I3@', 'WIFE': '', 'MARR': '15 APR 1999', 'CHIL': ['@I5@']},
+                '@F4@': {'HUSB': '@I4@', 'WIFE': '@I5@', 'MARR': '15 APR 1999'}}
+    individuals = {'@I1@': {'NAME': 'Michael /Cooke/', 'SEX': 'M', 'BIRT': '', 'DATE': '2 DEC 2000', 'FAMS': '@F1@'},
+                   '@I2@': {'NAME': 'Michael /Cooke/', 'SEX': 'M', 'BIRT': '', 'DATE': '2 DEC 2000', 'FAMC': '@F1@', 'FAMS': '@F2@'},
+                   '@I3@': {'NAME': 'Michael /Cooke/', 'SEX': 'M', 'BIRT': '', 'DATE': '2 DEC 2000', 'FAMC': '@F1@', 'FAMS': '@F3@'},
+                   '@I4@': {'NAME': 'Michael /Cooke/', 'SEX': 'M', 'BIRT': '', 'DATE': '2 DEC 2000', 'FAMC': '@F2@', 'FAMS': '@F4@'},
+                   '@I5@': {'NAME': 'Michael /Cooke/', 'SEX': 'F', 'BIRT': '', 'DATE': '2 DEC 2000', 'FAMC': '@F3@', 'FAMS': '@F4@'}}
+    assert us_19(families, individuals) == False
 
 def test_US16_valid():
     #Male last names
