@@ -221,8 +221,9 @@ def siblings_do_not_marry(individuals: dict, families: dict) -> bool:
         Θ(n)
         O(n)
     """
-    for family in individuals.values():
+    for family in families.values():
         if "HUSB" in family or "WIFE" in family:
+            print("here2")
             husband = individuals.get(family["HUSB"])
             wife = individuals.get(family["WIFE"])
             if husband == None or wife == None:
@@ -256,10 +257,16 @@ def siblings_could_be_born(individuals: dict, families: dict) -> bool:
     """
     for family in families.values():
         if "CHIL" in family:
+            print("here")
             children = []
             for child_id in family["CHIL"]:
                 children.append(individuals[child_id])
-            birth_dates = list(map(lambda child: child.get("DATE"), children))
+            birth_dates = list(
+                map(
+                    lambda child: datetime.strptime(child.get("DATE"), "%d %b %Y"),
+                    children,
+                )
+            )
             for date in birth_dates:
                 for second_date in birth_dates:
                     # Make sure the time delta is correct:

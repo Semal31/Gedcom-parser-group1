@@ -1,23 +1,52 @@
 import pytest
 
-from parser import (
-    check_marriage_divorce_dates,
-    children_before_death,
-    us_05,
-    us_10,
-    check_birth_before_marriage,
-    check_age,
-    dates_before_current,
-    divorce_before_death,
-    us_03,
-    us_14,
-    us_19,
-    us_08,
-    us_16,
-    us_21,
-    fewer_than_15_children,
-    uncle_aunts_cannot_marry_nieces_nephews,
-)
+from parser import *
+
+# Generic individuals dict that should pass most tests
+CORRECT_INDIVIDUALS = {
+    "@I1@": {
+        "NAME": "Ryan /Hartman/",
+        "SEX": "M",
+        "BIRT": "",
+        "DATE": "11 NOV 1999",
+        "FAMS": "@F9@",
+        "FAMC": "@F2@",
+    },
+    "@I3@": {
+        "NAME": "Thomas /Hartman/",
+        "SEX": "M",
+        "BIRT": "",
+        "DATE": "2 DEC 1962",
+        "FAMS": "@F2@",
+        "FAMC": "@F3@",
+    },
+    "@I4@": {
+        "NAME": "June /Lagaveen/",
+        "SEX": "F",
+        "BIRT": "",
+        "DATE": "1 OCT 1970",
+        "FAMS": "@F2@",
+        "FAMC": "@F4@",
+    },
+    "@I5@": {
+        "NAME": "Thomas /Hartman/",
+        "SEX": "M",
+        "BIRT": "",
+        "DATE": "29 JUL 1994",
+        "FAMS": "@F5@",
+        "FAMC": "@F2@",
+    },
+}
+
+CORRECT_FAMILIES = {
+    "@F2@": {
+        "HUSB": "@I3@",
+        "WIFE": "@I4@",
+        "CHIL": ["@I1@", "@I5@"],
+        "MARR": "8 AUG 2020",
+        "DIV": "30 DEC 2018",
+    }
+}
 
 
 def test_check_marriage_divorce_dates_with_correct_dates():
@@ -1813,3 +1842,112 @@ def test_uncle_aunts_cannot_marry_nieces_nephews_incorrect():
         },
     }
     assert uncle_aunts_cannot_marry_nieces_nephews(families, individuals) == False
+
+
+def test_siblings_spacing_correct():
+    assert siblings_could_be_born(CORRECT_INDIVIDUALS, CORRECT_FAMILIES) == True
+
+
+def test_siblings_spacing_incorrect():
+    individuals = {
+        "@I1@": {
+            "NAME": "Ryan /Hartman/",
+            "SEX": "M",
+            "BIRT": "",
+            "DATE": "11 NOV 1999",
+            "FAMS": "@F9@",
+            "FAMC": "@F2@",
+        },
+        "@I3@": {
+            "NAME": "Thomas /Hartman/",
+            "SEX": "M",
+            "BIRT": "",
+            "DATE": "16 NOV 1999",
+            "FAMS": "@F2@",
+            "FAMC": "@F3@",
+        },
+        "@I4@": {
+            "NAME": "June /Lagaveen/",
+            "SEX": "F",
+            "BIRT": "",
+            "DATE": "1 OCT 1970",
+            "FAMS": "@F2@",
+            "FAMC": "@F4@",
+        },
+        "@I5@": {
+            "NAME": "Thomas /Hartman/",
+            "SEX": "M",
+            "BIRT": "",
+            "DATE": "16 NOV 1999",  # Should fail here
+            "FAMS": "@F5@",
+            "FAMC": "@F2@",
+        },
+    }
+    families = {
+        "@F2@": {
+            "HUSB": "@I3@",
+            "WIFE": "@I4@",
+            "CHIL": ["@I1@", "@I5@"],
+            "MARR": "8 AUG 2020",
+            "DIV": "30 DEC 2018",
+        }
+    }
+    assert siblings_could_be_born(individuals, families) == False
+
+
+def test_incest_among_siblings_correct():
+    assert siblings_do_not_marry(CORRECT_INDIVIDUALS, CORRECT_FAMILIES) == True
+
+
+def test_incest_among_siblings_incorrect():
+    individuals = {
+        "@I1@": {
+            "NAME": "Ryan /Hartman/",
+            "SEX": "M",
+            "BIRT": "",
+            "DATE": "11 NOV 1999",
+            "FAMS": "@F9@",
+            "FAMC": "@F2@",
+        },
+        "@I3@": {
+            "NAME": "Thomas /Hartman/",
+            "SEX": "M",
+            "BIRT": "",
+            "DATE": "16 NOV 1999",  # Should fail here
+            "FAMS": "@F2@",
+            "FAMC": "@F3@",
+        },
+        "@I4@": {
+            "NAME": "June /Lagaveen/",
+            "SEX": "F",
+            "BIRT": "",
+            "DATE": "1 OCT 1970",
+            "FAMS": "@F2@",
+            "FAMC": "@F4@",
+        },
+        "@I5@": {
+            "NAME": "Thomas /Hartman/",
+            "SEX": "M",
+            "BIRT": "",
+            "DATE": "29 JUL 1994",
+            "FAMS": "@F5@",
+            "FAMC": "@F2@",
+        },
+    }
+    families = {
+        "@F2@": {
+            "HUSB": "@I3@",
+            "WIFE": "@I4@",
+            "CHIL": ["@I1@", "@I5@"],
+            "MARR": "8 AUG 2020",
+            "DIV": "30 DEC 2018",
+        },
+        "@F3@": {
+            "HUSB": "@I1@",
+            "WIFE": "@I5@",
+            "CHIL": [],
+            "MARR": "8 AUG 2020",
+            "DIV": "30 DEC 2018",
+        },
+    }
+    assert siblings_do_not_marry(individuals, families) == False
