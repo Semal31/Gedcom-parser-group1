@@ -202,7 +202,7 @@ def get_information(file_path):
     # us_21(families,individuals)
     # us_14(families,individuals)
     # us_19(families, individuals)
-    check_marriage_to_descendants()
+    # check_marriage_to_descendants(families)
 
 
 def siblings_do_not_marry(individuals: dict, families: dict) -> bool:
@@ -897,17 +897,7 @@ def parents_not_too_old(families, individuals):
     return is_valid
                 
 #US17 - No marriage to descendants
-def check_marriage_to_descendants():
-    families = {'@F1@': {'HUSB': '@I1@', 'WIFE': '@I2@', 'DATE': '15 APR 1999'},
-                '@F2@': {'HUSB': '@I3@', 'WIFE': '@I5@', 'CHIL': ['@I1@', '@I5@'],'MARR': '8 AUG 1991', 'DIV': '30 DEC 2018'},
-                '@F3@': {'HUSB': '@I11@', 'WIFE': '@I12@', 'CHIL': ['@I3@']},
-                '@F4@': {'HUSB': '@I7@', 'WIFE': '@I8@', 'CHIL': ['@I4@', '@I9@', '@I10@']},
-                '@F5@': {'HUSB': '@I5@', 'WIFE': '@I6@', 'DATE': '31 JUL 2020'},
-                '@F6@': {'HUSB': '@I15@', 'WIFE': '@I17@', 'CHIL': ['@I7@']},
-                '@F7@': {'HUSB': '@I8@', 'WIFE': '@I14@', 'CHIL': ['@I8@']},
-                '@F8@': {'HUSB': '@I17@', 'WIFE': '@I16@'},
-                '@F9@': {'HUSB': '@I1@', 'CHIL': ['@I18@']}
-                }
+def check_marriage_to_descendants(families):
     is_valid = True
     for id in families:
         if "CHIL" in families[id]:
