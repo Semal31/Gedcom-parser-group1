@@ -876,6 +876,42 @@ def us_19(families, individuals):
                                     is_valid = False
     return is_valid
 
+#US12 - Parents not too old
+def parents_not_too_old(families, individuals):
+    is_valid = True
+    for id in families:
+        if "CHIL" in families[id]:
+            for child in families[id]['CHIL']:
+                child_age = get_age(individuals[child]['DATE'])
+                if "WIFE" in families[id]:
+                    wife_age = get_age(individuals[families[id]['WIFE']]['DATE'])
+                    if wife_age - child_age >= 60:
+                        is_valid = False
+                        print('ERROR: INDIVIDUAL: US12: Wife is too old (' + str(wife_age - child_age), 'years older than', get_individual_name(child, individuals).replace("/","") + ')' )
+                if "HUSB" in families[id]:
+                    husb_age = get_age(individuals[families[id]['HUSB']]['DATE'])
+                    if husb_age - child_age >= 80:
+                        is_valid = False
+                        print('ERROR: INDIVIDUAL: US12: Husband is too old (' + str(husb_age - child_age), 'years older than', get_individual_name(child, individuals).replace("/","") + ')' )
+    return is_valid
+                
+#US17 - No marriage to descendants
+def check_marriage_to_descendants(families, individuals):
+    is_valid = True
+    for id in families:
+        if "CHIL" in families[id]:
+            for child in families[id]['CHIL']:
+                if "HUSB" in families[id]:
+                    if child == families[id]['HUSB']:
+                        print('ERROR: INDIVIDUAL: US17:', child, 'cannot be married to ancestor', families[id]['WIFE'])
+                        is_valid = False
+                        
+                if "WIFE" in families[id]:
+                    if child == families[id]['WIFE']:
+                        print('ERROR: INDIVIDUAL: US17:', child, 'cannot be married to ancestor', families[id]['HUSB'])
+                        is_valid = False
+    return is_valid
+
 
 def parse_GEDCOM(file_path):
     if not os.path.exists(file_path):
