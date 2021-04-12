@@ -190,6 +190,7 @@ def get_information(file_path):
     print("\n\nFamilies")
     print(tabulate(get_sorted_families(), headers=fam_headers))
     print("\n")
+    unique_first_names(families, individuals)
     # children_before_death(families, individuals)
     # us_05(families,individuals)
     # us_10(families,individuals)
@@ -233,7 +234,6 @@ def siblings_do_not_marry(individuals: dict, families: dict) -> bool:
                 )
             elif husband.get("FAMC") == wife.get("FAMC"):
                 return False
-
     return True
 
 
@@ -303,9 +303,22 @@ def check_age(individuals: dict) -> bool:
                 print("ERROR: Individuals cannot be 150 or older!\n")
                 is_valid = False
             print(f"{person.get('NAME')} (id {id}) was {age} years old.")
-
     return is_valid
 
+def unique_first_names(families, individuals):
+  is_valid = True
+  names_birthdays = []
+  for id in families:
+    if "CHIL" in families[id]:
+      for id2 in families[id]["CHIL"]:
+        names_birthdays.append([individuals[id2]["NAME"], individuals[id2]["DATE"]])
+      for child in names_birthdays:
+        if names_birthdays.count(child) > 1:
+          is_valid = False
+          print("Error: Duplicate child in family: " + id2)
+          break
+      names_birthdays.clear()
+  return is_valid
 
 def fewer_than_15_children(families):
     is_valid = True

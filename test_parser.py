@@ -1978,3 +1978,40 @@ def test_check_marriage_to_descendants_invalid():
                 '@F9@': {'HUSB': '@I1@', 'CHIL': ['@I18@']}
                 }
     assert check_marriage_to_descendants(families) == False
+
+def test_unique_first_names_correct():
+  assert unique_first_names(CORRECT_FAMILIES, CORRECT_INDIVIDUALS) == True
+  
+def test_unique_first_names_invalid():
+  families = {
+        "@F1@": {"HUSB": "@I1@", "WIFE": "@I2@", "DATE": "15 APR 1999"},
+        "@F2@": {
+            "HUSB": "@I3@",
+            "WIFE": "@I4@",
+            "CHIL": ["@I1@", "@I5@"],
+            "MARR": "8 AUG 1991",
+            "DIV": "30 DEC 2018",
+        }
+    }
+
+  individuals = {
+        "@I1@": {
+            "NAME": "Ryan /Hartman/",
+            "SEX": "M",
+            "BIRT": "",
+            "DATE": "11 NOV 1999",
+            "FAMS": "@F9@",
+            "FAMC": "@F2@",
+        },
+        "@I5@": {
+            "NAME": "Ryan /Hartman/",
+            "SEX": "M",
+            "BIRT": "",
+            "DATE": "11 NOV 1999",
+            "DEAT": "",
+            "DEATH_DATE": "5 APR 1600",
+            "FAMS": "@F2@",
+            "FAMC": "@F3@",
+        }
+    }
+  assert unique_first_names(families, individuals) == False
