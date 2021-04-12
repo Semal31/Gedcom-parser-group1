@@ -236,6 +236,66 @@ def siblings_do_not_marry(individuals: dict, families: dict) -> bool:
     return True
 
 
+def list_deceased(individuals: dict) -> int:
+    """Implements user story 29, listing all deceased individuals in a GEDCOM file.
+    Author: Ryan Hartman
+    Last Modified: 4/12/2021
+
+    Args:
+        individuals (dict): A dict of individuals to check
+
+    Returns:
+        (int): The number of deceased individuals
+
+    Runtime:
+        Ω(1) (when the first individual is an offending case)
+        Θ(n)
+        O(n)
+    """
+    deceased = 0
+    for id, individual in individuals.items():
+        if "DEATH_DATE" in individual:
+            if deceased == 0:
+                print("Deceased individuals:")
+            print(
+                f"  -> {individual['NAME']} (ID of {id}) passed away on {individual['DEATH_DATE']}"
+            )
+            deceased += 1
+    if deceased == 0:
+        print("No deceased individuals found.")
+    return deceased
+
+
+def names_are_unique(individuals: dict) -> bool:
+    """Implements user story 23, checking if all people born on the same day have unique names.
+        Author: Ryan Hartman
+        Last Modified: 4/12/2021
+
+    Args:
+        individuals (dict): A dict of individuals to check
+
+    Returns:
+        bool: True if all people born on the same day are unique, false otherwise.
+
+    Runtime:
+        Ω(1) (when the first individual is an offending case)
+        Θ(n)
+        O(n)
+    """
+    people = {}
+    for individual in individuals.values():
+        birth_date = individual.get("DATE")
+        name = individual.get("NAME")
+        if name in people:
+            if birth_date in people[name]:
+                return False
+            else:
+                people[name].add(birth_date)
+        else:
+            people[name] = {birth_date}
+    return True
+
+
 def siblings_could_be_born(individuals: dict, families: dict) -> bool:
     """Implements user story 13, checking if all siblings in a family are born 9 months
         from each other, or are born within one day of each other.
@@ -876,38 +936,62 @@ def us_19(families, individuals):
                                     is_valid = False
     return is_valid
 
-#US12 - Parents not too old
+
+# US12 - Parents not too old
 def parents_not_too_old(families, individuals):
     is_valid = True
     for id in families:
         if "CHIL" in families[id]:
-            for child in families[id]['CHIL']:
-                child_age = get_age(individuals[child]['DATE'])
+            for child in families[id]["CHIL"]:
+                child_age = get_age(individuals[child]["DATE"])
                 if "WIFE" in families[id]:
-                    wife_age = get_age(individuals[families[id]['WIFE']]['DATE'])
+                    wife_age = get_age(individuals[families[id]["WIFE"]]["DATE"])
                     if wife_age - child_age >= 60:
                         is_valid = False
-                        print('ERROR: INDIVIDUAL: US12: Wife is too old (' + str(wife_age - child_age), 'years older than', get_individual_name(child, individuals).replace("/","") + ')' )
+                        print(
+                            "ERROR: INDIVIDUAL: US12: Wife is too old ("
+                            + str(wife_age - child_age),
+                            "years older than",
+                            get_individual_name(child, individuals).replace("/", "")
+                            + ")",
+                        )
                 if "HUSB" in families[id]:
-                    husb_age = get_age(individuals[families[id]['HUSB']]['DATE'])
+                    husb_age = get_age(individuals[families[id]["HUSB"]]["DATE"])
                     if husb_age - child_age >= 80:
                         is_valid = False
-                        print('ERROR: INDIVIDUAL: US12: Husband is too old (' + str(husb_age - child_age), 'years older than', get_individual_name(child, individuals).replace("/","") + ')' )
+                        print(
+                            "ERROR: INDIVIDUAL: US12: Husband is too old ("
+                            + str(husb_age - child_age),
+                            "years older than",
+                            get_individual_name(child, individuals).replace("/", "")
+                            + ")",
+                        )
     return is_valid
-                
-#US17 - No marriage to descendants
+
+
+# US17 - No marriage to descendants
 def check_marriage_to_descendants(families):
     is_valid = True
     for id in families:
         if "CHIL" in families[id]:
-            for child in families[id]['CHIL']:
+            for child in families[id]["CHIL"]:
                 if "HUSB" in families[id]:
-                    if child == families[id]['HUSB']:
-                        print('ERROR: INDIVIDUAL: US17:', child, 'cannot be married to ancestor', families[id]['WIFE'])
-                        is_valid = False    
+                    if child == families[id]["HUSB"]:
+                        print(
+                            "ERROR: INDIVIDUAL: US17:",
+                            child,
+                            "cannot be married to ancestor",
+                            families[id]["WIFE"],
+                        )
+                        is_valid = False
                 if "WIFE" in families[id]:
-                    if child == families[id]['WIFE']:
-                        print('ERROR: INDIVIDUAL: US17:', child, 'cannot be married to ancestor', families[id]['HUSB'])
+                    if child == families[id]["WIFE"]:
+                        print(
+                            "ERROR: INDIVIDUAL: US17:",
+                            child,
+                            "cannot be married to ancestor",
+                            families[id]["HUSB"],
+                        )
                         is_valid = False
     return is_valid
 
