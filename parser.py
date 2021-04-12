@@ -232,7 +232,6 @@ def siblings_do_not_marry(individuals: dict, families: dict) -> bool:
                 )
             elif husband.get("FAMC") == wife.get("FAMC"):
                 return False
-
     return True
 
 
