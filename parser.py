@@ -183,13 +183,13 @@ def get_information(file_path):
         "Children",
     ]
     # check_marriage_divorce_dates(families, individuals)
-    check_birth_before_marriage(families, individuals)
-    check_age(individuals)
-    print("Individuals")
-    print(tabulate(get_sorted_individuals(), headers=indi_headers))
-    print("\n\nFamilies")
-    print(tabulate(get_sorted_families(), headers=fam_headers))
-    print("\n")
+    # check_birth_before_marriage(families, individuals)
+    # check_age(individuals)
+    # print("Individuals")
+    # print(tabulate(get_sorted_individuals(), headers=indi_headers))
+    # print("\n\nFamilies")
+    # print(tabulate(get_sorted_families(), headers=fam_headers))
+    # print("\n")
     # list_over_30_and_single(individuals)
     # unique_first_names(families, individuals)
     # children_before_death(families, individuals)
@@ -206,6 +206,7 @@ def get_information(file_path):
     # us_19(families, individuals)
     # check_marriage_to_descendants(families)
     # order_siblings_by_age(families, individuals)
+    # check_unique_ids(file_path)
 
 
 def siblings_do_not_marry(individuals: dict, families: dict) -> bool:
@@ -1031,10 +1032,7 @@ def order_siblings_by_age(families, individuals):
             children = {}
             if len(families[id]['CHIL']) > 1:
                 for child in families[id]['CHIL']:
-                    # print("age:", get_age(individuals[child]['DATE']))
                     children.update({child: get_age(individuals[child]['DATE'])})
-                # children_ages.sort(reverse=True)
-                # print(children_ages)
                 sorted_children = sorted(children, key=children.get, reverse=True)
                 print('For family', id + ', siblings are ordered in descending age as such:', ', '.join(sorted_children))
             else:
@@ -1044,6 +1042,25 @@ def order_siblings_by_age(families, individuals):
             siblings_exist_in_all_fams = False
             print('For family', id + ', there are no children (and therefore no siblings to order)')
     return siblings_exist_in_all_fams
+
+def check_unique_ids(file_path):
+    f = open(file_path, "r")
+    individual_ids = []
+    family_ids = []
+    is_valid = True
+    for line in f:
+        if "0 @" in line:
+            if "0 @I" in line:
+                individual_ids.append(line.split()[1])
+            else:
+                family_ids.append(line.split()[1])
+    if len(individual_ids) != len(set(individual_ids)):
+        is_valid = False
+        print('ERROR: US22: Individual: Duplicate individual IDs found')
+    if len(family_ids) != len(set(family_ids)):
+        is_valid = False
+        print('ERROR: US22: Family: Duplicate family IDs found')
+    return is_valid
 
 
 def parse_GEDCOM(file_path):

@@ -1,0 +1,258 @@
+0 HEAD
+0 NOTE Ryan Hartman
+1 SOUR Family Echo
+2 WWW http://www.familyecho.com/
+1 FILE My Family
+1 DATE 17 FEB 2021
+1 DEST ANSTFILE
+1 GEDC
+2 VERS 5.5.1
+2 FORM LINEAGE-LINKED
+1 SUBM @I1@
+2 NAME Ryan Joseph Hartman
+1 SUBN
+1 CHAR UTF-8
+0 @I1@ INDI
+1 NAME Ryan /Hartman/
+2 GIVN Ryan
+2 SURN Hartman
+2 _MARNM Hartman
+1 SEX M
+1 BIRT
+2 DATE 11 NOV 1999
+1 FAMS @F1@
+1 FAMS @F9@
+1 FAMC @F2@
+0 @I2@ INDI
+1 NAME Alyssa /Bottesi/
+2 GIVN Alyssa
+2 SURN Bottesi
+2 _MARNM Bottesi
+1 SEX F
+1 BIRT
+2 DATE 30 APR 1999
+1 FAMS @F1@
+0 @I3@ INDI
+1 NAME Thomas /Hartman/
+2 GIVN Thomas
+2 SURN Hartman
+2 _MARNM Hartman
+1 SEX M
+1 BIRT
+2 DATE 2 DEC 1962
+1 FAMS @F2@
+1 FAMC @F3@
+0 @I4@ INDI
+1 NAME June /Lagaveen/
+2 GIVN June
+2 SURN Lagaveen
+2 _MARNM Hartman
+1 SEX F
+1 BIRT
+2 DATE 1 OCT 1970
+1 FAMS @F2@
+1 FAMC @F4@
+0 @I6@ INDI
+1 NAME Thomas /Hartman/
+2 GIVN Thomas
+2 SURN Hartman
+2 _MARNM Hartman
+1 SEX M
+1 BIRT
+2 DATE 29 JUL 1994
+1 FAMS @F5@
+1 FAMC @F2@
+0 @I6@ INDI
+1 NAME Felisha /Kissel/
+2 GIVN Felisha
+2 SURN Kissel
+2 _MARNM Kissel
+1 SEX F
+1 BIRT
+2 DATE 12 MAY 1994
+1 FAMS @F5@
+0 @I7@ INDI
+1 NAME Peter /Lagaveen/
+2 GIVN Peter
+2 SURN Lagaveen
+2 _MARNM Lagaveen
+1 SEX M
+1 BIRT
+2 DATE 3 NOV 1949
+1 FAMS @F4@
+1 FAMC @F6@
+0 @I8@ INDI
+1 NAME June /Vanderzee/
+2 GIVN June
+2 SURN Vanderzee
+2 _MARNM Lagaveen
+1 SEX F
+1 BIRT
+2 DATE 4 APR 1950
+1 FAMS @F4@
+1 FAMC @F7@
+0 @I9@ INDI
+1 NAME Peter /Lagaveen/
+2 GIVN Peter
+2 SURN Lagaveen
+2 _MARNM Lagaveen
+1 SEX M
+1 BIRT
+2 DATE 27 SEP 1972
+1 FAMC @F4@
+0 @I10@ INDI
+1 NAME Lynn-marie /Lagaveen/
+2 GIVN Lynn-marie
+2 SURN Lagaveen
+2 _MARNM Cacoilo
+1 SEX F
+1 BIRT
+2 DATE 10 AUG 1976
+1 FAMC @F4@
+0 @I11@ INDI
+1 NAME Thomas /Hartman/
+2 GIVN Thomas
+2 SURN Hartman
+2 _MARNM Hartman
+1 SEX M
+1 BIRT
+2 DATE 8 JAN 1930
+1 DEAT Y
+2 DATE 6 JAN 1990
+1 FAMS @F3@
+0 @I12@ INDI
+1 NAME Leona /Layton/
+2 GIVN Leona
+2 SURN Layton
+2 _MARNM Hartman
+1 SEX F
+1 BIRT
+2 DATE 5 AUG 1936
+1 FAMS @F3@
+0 @I13@ INDI
+1 NAME Peter /Vanderzee/
+2 GIVN Peter
+2 SURN Vanderzee
+2 _MARNM Vanderzee
+1 SEX M
+1 BIRT
+2 DATE 10 JUL 1911
+1 DEAT Y
+2 DATE 26 NOV 1986
+1 FAMS @F7@
+0 @I14@ INDI
+1 NAME Olive /Heritage/
+2 GIVN Olive
+2 SURN Heritage
+2 _MARNM Vanderzee
+1 SEX F
+1 BIRT
+2 DATE 7 JUN 1919
+1 DEAT Y
+2 DATE 13 OCT 2009
+1 FAMS @F7@
+0 @I15@ INDI
+1 NAME Peter /Lagaveen/
+2 GIVN Peter
+2 SURN Lagaveen
+2 _MARNM Lagaveen
+1 SEX M
+1 BIRT
+2 DATE 2 MAR 1916
+1 DEAT Y
+2 DATE 8 JUN 1966
+1 FAMS @F6@
+0 @I16@ INDI
+1 NAME Beatrice /Meyne/
+2 GIVN Beatrice
+2 SURN Meyne
+2 _MARNM Lagaveen
+1 SEX F
+1 BIRT
+2 DATE 29 MAY 1914
+1 DEAT Y
+2 DATE 26 APR 2005
+1 FAMS @F6@
+1 FAMS @F8@
+0 @I17@ INDI
+1 NAME Gerrit /Dijkstra/
+2 GIVN Gerrit
+2 SURN Dijkstra
+2 _MARNM Dijkstra
+1 SEX M
+1 BIRT
+2 DATE 13 SEP 1920
+1 DEAT Y
+2 DATE 11 SEP 2001
+1 FAMS @F8@
+0 @I18@ INDI
+1 NAME Sage /Hartman/
+2 GIVN Sage
+2 SURN Hartman
+2 _MARNM Hartman
+1 SEX M
+1 BIRT
+2 DATE 10 JUN 2020
+1 FAMC @F9@
+0 @F1@ FAM
+1 HUSB @I1@
+1 WIFE @I2@
+1 EVEN
+2 TYPE Relationship
+2 DATE 15 APR 1999
+1 _CURRENT Y
+0 @F2@ FAM
+1 HUSB @I3@
+1 WIFE @I4@
+1 CHIL @I1@
+1 CHIL @I5@
+1 MARR
+2 DATE 8 AUG 1991
+1 DIV
+2 DATE 30 DEC 2018
+1 _CURRENT Y
+0 @F2@ FAM
+1 HUSB @I11@
+1 WIFE @I12@
+1 CHIL @I3@
+1 MARR
+1 _CURRENT Y
+0 @F4@ FAM
+1 HUSB @I7@
+1 WIFE @I8@
+1 CHIL @I4@
+1 CHIL @I9@
+1 CHIL @I10@
+1 MARR
+1 _CURRENT Y
+0 @F5@ FAM
+1 HUSB @I5@
+1 WIFE @I6@
+1 ENGA
+2 DATE 31 JUL 2020
+1 _CURRENT Y
+0 @F6@ FAM
+1 HUSB @I15@
+1 WIFE @I16@
+1 CHIL @I7@
+1 MARR
+1 EVEN
+2 TYPE Ending
+1 _CURRENT N
+0 @F7@ FAM
+1 HUSB @I13@
+1 WIFE @I14@
+1 CHIL @I8@
+1 MARR
+1 EVEN
+2 TYPE Ending
+1 _CURRENT N
+0 @F8@ FAM
+1 HUSB @I17@
+1 WIFE @I16@
+1 MARR
+1 _CURRENT Y
+0 @F9@ FAM
+1 HUSB @I1@
+1 CHIL @I18@
+0 TRLR

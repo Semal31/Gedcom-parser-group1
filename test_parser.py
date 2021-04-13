@@ -2505,3 +2505,10 @@ def test_order_siblings_by_age_no_siblings():
 'SEX': 'F', 'BIRT': '', 'DATE': '7 JUN 1919', 'DEAT': 'Y', 'DEATH_DATE': '13 OCT 2009', 'FAMS': '@F7@'}, '@I15@': {'NAME': 'Peter /Lagaveen/', 'SEX': 'M', 'BIRT': '', 'DATE': '2 MAR 1916', 'DEAT': 'Y', 'DEATH_DATE': '8 JUN 1966', 'FAMS': '@F6@'}, '@I16@': {'NAME': 'Beatrice /Meyne/', 'SEX': 'F', 'BIRT': '', 'DATE': '29 MAY 1914', 'DEAT': 
 'Y', 'DEATH_DATE': '26 APR 2005', 'FAMS': '@F8@'}, '@I17@': {'NAME': 'Gerrit /Dijkstra/', 'SEX': 'M', 'BIRT': '', 'DATE': '13 SEP 1920', 'DEAT': 'Y', 'DEATH_DATE': '11 SEP 2001', 'FAMS': '@F8@'}, '@I18@': {'NAME': 'Sage /Hartman/', 'SEX': 'M', 'BIRT': '', 'DATE': '10 JUN 2020', 'FAMC': '@F9@'}}
     assert order_siblings_by_age(families, individuals) == False
+    
+def test_check_unique_ids_valid():
+    assert check_unique_ids("myfamily.ged") == True
+
+
+def test_check_unique_ids_invalid():
+    assert check_unique_ids("testUS22_myfamily.ged") == False
