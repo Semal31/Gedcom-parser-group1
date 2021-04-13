@@ -2486,3 +2486,12 @@ def test_list_over_30_and_single_valid():
 "@I10@": {'NAME': 'Lynn-marie /Lagaveen/', 'SEX': 'F', 'BIRT': '', 'DATE': '10 AUG 1976', 'FAMC': '@F4@'},
 "@I18@": {'NAME': 'Sage /Hartman/', 'SEX': 'M', 'BIRT': '', 'DATE': '10 JUN 2020', 'FAMC': '@F9@'}}
   assert list_over_30_and_single(individuals) == False
+
+def test_order_siblings_by_age_multiple_siblings():
+    families = {
+                '@F2@': {'HUSB': '@I3@', 'WIFE': '@I5@', 'CHIL': ['@I1@', '@I5@'],'MARR': '8 AUG 1991', 'DIV': '30 DEC 2018'},
+                '@F4@': {'HUSB': '@I7@', 'WIFE': '@I8@', 'CHIL': ['@I4@', '@I9@', '@I10@']},
+                }
+    assert order_siblings_by_age(families, CORRECT_INDIVIDUALS) == True
+def test_order_siblings_by_age_no_siblings():
+    assert order_siblings_by_age(CORRECT_FAMILIES, CORRECT_INDIVIDUALS) == False

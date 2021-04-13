@@ -205,6 +205,7 @@ def get_information(file_path):
     # us_14(families,individuals)
     # us_19(families, individuals)
     # check_marriage_to_descendants(families)
+    # order_siblings_by_age(families, individuals)
 
 
 def siblings_do_not_marry(individuals: dict, families: dict) -> bool:
@@ -1022,6 +1023,27 @@ def check_marriage_to_descendants(families):
                         )
                         is_valid = False
     return is_valid
+
+def order_siblings_by_age(families, individuals):
+    siblings_exist_in_all_fams = True
+    for id in families:
+        if "CHIL" in families[id]:
+            children = {}
+            if len(families[id]['CHIL']) > 1:
+                for child in families[id]['CHIL']:
+                    # print("age:", get_age(individuals[child]['DATE']))
+                    children.update({child: get_age(individuals[child]['DATE'])})
+                # children_ages.sort(reverse=True)
+                # print(children_ages)
+                sorted_children = sorted(children, key=children.get, reverse=True)
+                print('For family', id + ', siblings are ordered in descending age as such:', ', '.join(sorted_children))
+            else:
+                siblings_exist_in_all_fams = False
+                print('For family', id + ', there is only one child (no siblings to order):', families[id]['CHIL'][0])
+        else:
+            siblings_exist_in_all_fams = False
+            print('For family', id + ', there are no children (and therefore no siblings to order)')
+    return siblings_exist_in_all_fams
 
 
 def parse_GEDCOM(file_path):
