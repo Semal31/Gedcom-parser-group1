@@ -2476,3 +2476,13 @@ def test_deceased():
         },
     }
     assert list_deceased(individuals) == 1
+
+
+def test_list_over_30_and_single_valid():
+  assert list_over_30_and_single(CORRECT_INDIVIDUALS) == True
+
+def test_list_over_30_and_single_valid():
+  individuals = {"@I9@": {'NAME': 'Peter /Lagaveen/', 'SEX': 'M', 'BIRT': '', 'DATE': '27 SEP 1972', 'FAMC': '@F4@'},
+"@I10@": {'NAME': 'Lynn-marie /Lagaveen/', 'SEX': 'F', 'BIRT': '', 'DATE': '10 AUG 1976', 'FAMC': '@F4@'},
+"@I18@": {'NAME': 'Sage /Hartman/', 'SEX': 'M', 'BIRT': '', 'DATE': '10 JUN 2020', 'FAMC': '@F9@'}}
+  assert list_over_30_and_single(individuals) == False

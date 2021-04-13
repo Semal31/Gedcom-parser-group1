@@ -190,7 +190,8 @@ def get_information(file_path):
     print("\n\nFamilies")
     print(tabulate(get_sorted_families(), headers=fam_headers))
     print("\n")
-    unique_first_names(families, individuals)
+    # list_over_30_and_single(individuals)
+    # unique_first_names(families, individuals)
     # children_before_death(families, individuals)
     # us_05(families,individuals)
     # us_10(families,individuals)
@@ -365,6 +366,15 @@ def check_age(individuals: dict) -> bool:
             print(f"{person.get('NAME')} (id {id}) was {age} years old.")
     return is_valid
 
+
+def list_over_30_and_single(individuals):
+  nobody = True
+  for id in individuals:
+    if "FAMS" not in individuals[id] and "DEAT" not in individuals[id]:
+      if get_age(individuals[id]["DATE"]) > 30:
+        nobody = False
+        print(individuals[id]["NAME"] + " is over 30 and has not been married")
+  return nobody
 
 def unique_first_names(families, individuals):
     is_valid = True
