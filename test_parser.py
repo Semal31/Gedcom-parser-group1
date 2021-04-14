@@ -2512,3 +2512,46 @@ def test_check_unique_ids_valid():
 
 def test_check_unique_ids_invalid():
     assert check_unique_ids("testUS22_myfamily.ged") == False
+
+def test_US27():
+    assert us_27(CORRECT_INDIVIDUALS) == True
+
+def test_US32_valid():
+    individuals = {
+        "@I1@": {
+            "NAME": "Ryan /Hartman/",
+            "SEX": "M",
+            "BIRT": "",
+            "DATE": "11 NOV 1999",
+            "FAMS": "@F9@",
+            "FAMC": "@F2@",
+        },
+        "@I3@": {
+            "NAME": "Thomas /Hartman/",
+            "SEX": "M",
+            "BIRT": "",
+            "DATE": "11 NOV 1999",
+            "FAMS": "@F2@",
+            "FAMC": "@F3@",
+        },
+        "@I4@": {
+            "NAME": "June /Lagaveen/",
+            "SEX": "F",
+            "BIRT": "",
+            "DATE": "1 OCT 1970",
+            "FAMS": "@F2@",
+            "FAMC": "@F4@",
+        },
+        "@I5@": {
+            "NAME": "Thomas /Hartman/",
+            "SEX": "M",
+            "BIRT": "",
+            "DATE": "1 OCT 1970",
+            "FAMS": "@F5@",
+            "FAMC": "@F2@",
+        },
+    }
+    assert us_32(individuals) == True
+
+def test_US32_invalid():
+    assert us_32(CORRECT_INDIVIDUALS) == False

@@ -4,6 +4,7 @@ import sys
 import getopt
 import os
 import util
+import collections
 from tabulate import tabulate
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
@@ -185,11 +186,11 @@ def get_information(file_path):
     # check_marriage_divorce_dates(families, individuals)
     # check_birth_before_marriage(families, individuals)
     # check_age(individuals)
-    # print("Individuals")
-    # print(tabulate(get_sorted_individuals(), headers=indi_headers))
-    # print("\n\nFamilies")
-    # print(tabulate(get_sorted_families(), headers=fam_headers))
-    # print("\n")
+    print("Individuals")
+    print(tabulate(get_sorted_individuals(), headers=indi_headers))
+    print("\n\nFamilies")
+    print(tabulate(get_sorted_families(), headers=fam_headers))
+    print("\n")
     # list_over_30_and_single(individuals)
     # unique_first_names(families, individuals)
     # children_before_death(families, individuals)
@@ -207,6 +208,8 @@ def get_information(file_path):
     # check_marriage_to_descendants(families)
     # order_siblings_by_age(families, individuals)
     # check_unique_ids(file_path)
+    # us_27(individuals)
+    # us_32(individuals)
 
 
 def siblings_do_not_marry(individuals: dict, families: dict) -> bool:
@@ -1062,6 +1065,29 @@ def check_unique_ids(file_path):
         print('ERROR: US22: Family: Duplicate family IDs found')
     return is_valid
 
+#US27 - Include individual ages
+def us_27(individuals):
+    age = True
+    for id in individuals:
+        individual_Name = individuals[id]["NAME"]
+        if individuals[id]["DATE"] == None:
+            age = False
+            print("ERROR: INDIVIDUAL: US27: Individual " + individual_Name + "does not have age listed in table.\n")
+    return age
+
+#US32 - List multiple births
+def us_32(individuals):
+    multiple_Births = False
+    birthdays = []
+    for id in individuals:
+        bday = individuals[id]["DATE"]
+        birthdays.append(str(bday)) 
+    if [item for item, count in collections.Counter(birthdays).items() if count > 1] == []:
+        return multiple_Births
+    else:
+        multiple_Births = True
+        print("US 32: These dates has multple births: "+ str([item for item, count in collections.Counter(birthdays).items() if count > 1]))
+        return multiple_Births
 
 def parse_GEDCOM(file_path):
     if not os.path.exists(file_path):
