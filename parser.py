@@ -210,6 +210,7 @@ def get_information(file_path):
     # check_unique_ids(file_path)
     # us_27(individuals)
     # us_32(individuals)
+    us_24(families)
 
 
 def siblings_do_not_marry(individuals: dict, families: dict) -> bool:
@@ -1088,6 +1089,31 @@ def us_32(individuals):
         multiple_Births = True
         print("US 32: These dates has multple births: "+ str([item for item, count in collections.Counter(birthdays).items() if count > 1]))
         return multiple_Births
+
+# US24 - Unique families and spouses
+def us_24(families):
+    is_valid = True
+    arrayOfFamilies = []
+    for id in families:
+        # Iterate through each family and append to local copy of relevant info to check
+        family = families[id]
+        # Check if any matches with local array (check for duplicate families)
+        for fam in arrayOfFamilies:
+            if (family == fam):
+                print('ERROR: US24: Family: Duplicate family found')
+                is_valid = False
+        arrayOfFamilies.append(family)
+
+    return is_valid
+
+# US30 - List living married
+def us_30(individuals):
+    print("US30: List living married:")
+    for id in individuals:
+        # Iterate through each person and check if they meet qualifiers
+        if not "DEATH_DATE" in individuals[id]:
+            if "FAMS" in individuals[id]:
+                print(individuals[id]["NAME"])
 
 def parse_GEDCOM(file_path):
     if not os.path.exists(file_path):

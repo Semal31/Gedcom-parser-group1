@@ -2555,3 +2555,22 @@ def test_US32_valid():
 
 def test_US32_invalid():
     assert us_32(CORRECT_INDIVIDUALS) == False
+
+
+def test_US24_valid():
+    families = {
+        "@F1@": {"HUSB": "@I1@", "WIFE": "", "DATE": "15 APR 1999"},
+        "@F2@": {"HUSB": "@I2@", "WIFE": "", "DATE": "15 APR 1999"},
+        "@F3@": {"HUSB": "@I3@", "WIFE": "", "DATE": "15 APR 1999"},
+        "@F4@": {"HUSB": "@I4@", "WIFE": "@I5@", "DATE": "15 APR 1999"},
+    }
+    assert us_24(families) == True
+
+
+def test_US24_invalid():
+    families = {
+        "@F2@": {"HUSB": "@I2@", "WIFE": "@I1@", "MARR": "15 APR 1999", "CHIL": ["@I4@"]},
+        "@F3@": {"HUSB": "@I2@", "WIFE": "@I1@", "MARR": "15 APR 1999", "CHIL": ["@I4@"]},
+        "@F4@": {"HUSB": "@I4@", "WIFE": "@I5@", "MARR": "15 APR 1999"},
+    }
+    assert us_24(families) == False
