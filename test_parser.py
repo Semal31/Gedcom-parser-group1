@@ -2574,3 +2574,14 @@ def test_US24_invalid():
         "@F4@": {"HUSB": "@I4@", "WIFE": "@I5@", "MARR": "15 APR 1999"},
     }
     assert us_24(families) == False
+
+def test_list_upcoming_birthdays_valid():
+    individuals = {
+        "@I1@": { "NAME": "Ryan /Hartman/", "SEX": "M", "BIRT": "", "DATE": "21 MAY 1999", "FAMS": "@F9@", "FAMC": "@F2@" },
+        "@I2@": { "NAME": "June /Hartman/", "SEX": "F", "BIRT": "", "DATE": "10 MAY 1970", "FAMS": "@F4@", "FAMC": "@F1@" },
+        "@I3@": { "NAME": "Thomas /Hartman/", "SEX": "M", "BIRT": "", "DATE": "20 APR 2005", "FAMS": "@F9@", "FAMC": "@F2@" },
+    }
+    assert list_upcoming_birthdays(individuals) == True
+    
+def test_list_upcoming_birthdays_invalid():
+    assert list_upcoming_birthdays(CORRECT_INDIVIDUALS) == False

@@ -210,7 +210,8 @@ def get_information(file_path):
     # check_unique_ids(file_path)
     # us_27(individuals)
     # us_32(individuals)
-    us_24(families)
+    # us_24(families)
+    list_upcoming_birthdays(individuals)
 
 
 def siblings_do_not_marry(individuals: dict, families: dict) -> bool:
@@ -1114,7 +1115,26 @@ def us_30(individuals):
         if not "DEATH_DATE" in individuals[id]:
             if "FAMS" in individuals[id]:
                 print(individuals[id]["NAME"])
-
+                
+# US38 - List upcoming birthdays
+def list_upcoming_birthdays(individuals):
+    any_bdays = False
+    for id in individuals:
+        birthdate = datetime.strptime(individuals[id]['DATE'], "%d %b %Y")
+        month = int(birthdate.strftime("%m"))
+        day = int(birthdate.strftime("%d"))
+        d = (month, day)
+        curr_month = int(datetime.now().strftime('%m'))
+        curr_day = int(datetime.now().strftime("%d"))
+        curr_d = (curr_month, curr_day)
+        one_mo_later = (curr_month + 1, curr_day)
+        if d > curr_d and d < one_mo_later:
+            any_bdays = True
+            print('US38: Individual: There is an upcoming birthday on', birthdate.strftime("%b"), day, "for individual", id)
+    return any_bdays
+        
+        
+        
 def parse_GEDCOM(file_path):
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"Cannot find file '{file_path}'.")
