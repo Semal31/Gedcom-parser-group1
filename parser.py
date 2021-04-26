@@ -211,7 +211,8 @@ def get_information(file_path):
     # us_27(individuals)
     # us_32(individuals)
     # us_24(families)
-    list_upcoming_birthdays(individuals)
+    # list_upcoming_birthdays(individuals)
+    list_orphans(families, individuals)
 
 
 def siblings_do_not_marry(individuals: dict, families: dict) -> bool:
@@ -1132,7 +1133,19 @@ def list_upcoming_birthdays(individuals):
             any_bdays = True
             print('US38: Individual: There is an upcoming birthday on', birthdate.strftime("%b"), day, "for individual", id)
     return any_bdays
-        
+
+#US33 - List orphans
+def list_orphans(families, individuals):
+    any_orphans = False
+    for id in families:
+        if 'CHIL' in families[id]:
+            for child in families[id]['CHIL']:
+                if get_age(individuals[child]['DATE']) < 18:
+                    if "HUSB" in families[id] and "WIFE" in families[id]:
+                        if "DEAT" in individuals[families[id]["HUSB"]] and "DEAT" in individuals[families[id]["WIFE"]]:
+                            any_orphans = True
+                            print("US33: Both parents for family", id, "have died, leaving", child, "(age", str(get_age(individuals[child]['DATE'])) + ") as an orphan.")
+    return any_orphans
         
         
 def parse_GEDCOM(file_path):

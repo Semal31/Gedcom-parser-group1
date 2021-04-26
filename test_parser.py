@@ -2585,3 +2585,46 @@ def test_list_upcoming_birthdays_valid():
     
 def test_list_upcoming_birthdays_invalid():
     assert list_upcoming_birthdays(CORRECT_INDIVIDUALS) == False
+
+def test_list_orphans_valid():
+    families = {"@F1@": {"HUSB": "@I1@", "WIFE": "@I2@", "CHIL": ["@I3@", "@I4@"], "DATE": "15 APR 1999"},
+                "@F2@": {"HUSB": "@I4@", "WIFE": "@I5@", "MARR": "8 AUG 1991", "DIV": "30 DEC 2018"}}
+    individuals = {
+        "@I1@": {
+            "NAME": "Ryan /Hartman/",
+            "SEX": "M",
+            "BIRT": "",
+            "DATE": "11 NOV 1970",
+            "DEAT": "Y",
+            "FAMS": "@F1@",
+            "FAMC": "@F2@",
+        },
+        "@I2@": {
+            "NAME": "Beatrice /Meyne/",
+            "SEX": "F",
+            "BIRT": "",
+            "DATE": "11 NOV 1970",
+            "DEAT": "Y",
+            "FAMS": "@F1@",
+            "FAMC": "@F2@",
+        },
+        "@I3@": {
+            "NAME": "Thomas /Hartman/",
+            "SEX": "M",
+            "BIRT": "",
+            "DATE": "2 DEC 2005",
+            "FAMC": "@F1@",
+        },
+        "@I4@": {
+            "NAME": "June /Lagaveen/",
+            "SEX": "F",
+            "BIRT": "",
+            "DATE": "2 DEC 2017",
+            "FAMC": "@F1@",
+        },
+        
+    }
+    assert list_orphans(families, individuals) == True
+    
+def test_list_orphans_invalid():
+    assert list_orphans(CORRECT_FAMILIES, CORRECT_INDIVIDUALS) == False
