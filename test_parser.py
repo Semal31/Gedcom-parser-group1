@@ -2628,3 +2628,13 @@ def test_list_orphans_valid():
     
 def test_list_orphans_invalid():
     assert list_orphans(CORRECT_FAMILIES, CORRECT_INDIVIDUALS) == False
+
+def test_list_death_in_last_30_days_valid():
+  individuals = {'@I13@': {'NAME': 'Peter /Vanderzee/', 'SEX': 'M', 'BIRT': '', 'DATE': '10 JUL 1911', 'DEAT': 'Y', 'DEATH_DATE': '26 APR 2020', 'FAMS': '@F7@'}, 
+                  '@I14@': {'NAME': 'Olive /Heritage/', 'SEX': 'F', 'BIRT': '', 'DATE': '7 JUN 1919', 'DEAT': 'Y', 'DEATH_DATE': '13 OCT 2009', 'FAMS': '@F7@'}}
+  assert list_death_in_last_30_days(individuals) == False
+
+def test_list_death_in_last_30_days_invalid():
+  individuals = {'@I13@': {'NAME': 'Peter /Vanderzee/', 'SEX': 'M', 'BIRT': '', 'DATE': '10 JUL 1911', 'DEAT': 'Y', 'DEATH_DATE': '26 APR 2021', 'FAMS': '@F7@'}, 
+                  '@I14@': {'NAME': 'Olive /Heritage/', 'SEX': 'F', 'BIRT': '', 'DATE': '7 JUN 1919', 'DEAT': 'Y', 'DEATH_DATE': '13 OCT 2009', 'FAMS': '@F7@'}}
+  assert list_death_in_last_30_days(individuals) == True

@@ -231,7 +231,29 @@ def get_information(file_path):
     # us_24(families)
     # list_upcoming_birthdays(individuals)
     list_orphans(families, individuals)
+    list_death_in_last_30_days(individuals)
 
+def list_death_in_last_30_days(individuals):
+  anyDeaths = False
+  for individual in individuals:
+    if "DEATH_DATE" in individuals[individual]:
+      try:
+        death_date = datetime.strptime(individuals[individual]["DEATH_DATE"], "%d %b %Y")
+      except ValueError:
+        try:
+          death_date = datetime.strptime(individuals[individual]["DEATH_DATE"], "%b %Y")
+        except ValueError:
+          try:
+            death_date = datetime.strptime(individuals[individual]["DEATH_DATE"], "%Y")
+          except ValueError:
+            pass
+      today = datetime.today()
+      delta = today - death_date
+      if delta.days <= 30:
+        anyDeaths = True
+        print(f"{individuals[individual]['NAME']} has died within 30 days")
+  return anyDeaths
+      
 
 def siblings_do_not_marry(individuals: dict, families: dict) -> bool:
     """Implements user story 18, checking if all siblings do not marry.
