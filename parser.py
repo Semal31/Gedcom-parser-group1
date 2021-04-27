@@ -40,13 +40,31 @@ def is_valid_tag(level, tag):
 
 def get_age(birth_date, death_date=None):
     today = datetime.today()
-    date = datetime.strptime(birth_date, "%d %b %Y")
+    try:
+        date = datetime.strptime(birth_date, "%d %b %Y")
+    except ValueError:
+        try:
+            date = datetime.strptime(birth_date, "%b %Y")
+        except ValueError:
+            try:
+                date = datetime.strptime(birth_date, "%Y")
+            except ValueError:
+                pass
     if not death_date:
         return (
             today.year - date.year - ((today.month, today.day) < (date.month, date.day))
         )
     else:
-        death_date = datetime.strptime(death_date, "%d %b %Y")
+        try:
+            death_date = datetime.strptime(death_date, "%d %b %Y")
+        except ValueError:
+            try:
+                death_date = datetime.strptime(death_date, "%b %Y")
+            except ValueError:
+                try:
+                    death_date = datetime.strptime(death_date, "%Y")
+                except ValueError:
+                    pass
         return (
             death_date.year
             - date.year
