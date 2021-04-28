@@ -1,6 +1,6 @@
 import pytest
 
-from parser import *
+from parser import * 
 
 # Generic individuals dict that should pass most tests
 CORRECT_INDIVIDUALS = {
@@ -2638,3 +2638,102 @@ def test_list_death_in_last_30_days_invalid():
   individuals = {'@I13@': {'NAME': 'Peter /Vanderzee/', 'SEX': 'M', 'BIRT': '', 'DATE': '10 JUL 1911', 'DEAT': 'Y', 'DEATH_DATE': '26 APR 2021', 'FAMS': '@F7@'}, 
                   '@I14@': {'NAME': 'Olive /Heritage/', 'SEX': 'F', 'BIRT': '', 'DATE': '7 JUN 1919', 'DEAT': 'Y', 'DEATH_DATE': '13 OCT 2009', 'FAMS': '@F7@'}}
   assert list_death_in_last_30_days(individuals) == True
+
+def test_us37_valid():
+    assert us_37(CORRECT_FAMILIES,CORRECT_INDIVIDUALS) == False
+
+def test_us37_invalid():
+    families = {
+        "@F1@": {"HUSB": "@I1@", "WIFE": "@I2@", "DATE": "15 APR 1999"},
+        "@F2@": {
+            "HUSB": "@I3@",
+            "WIFE": "@I4@",
+            "CHIL": ["@I1@", "@I5@"],
+            "MARR": "8 AUG 1991",
+            "DIV": "30 DEC 2018",
+        },
+    }
+    individuals = {
+        "@I1@": {
+            "NAME": "Wyett /Cooke/",
+            "SEX" : "M",
+            "BIRT": "",
+            "DATE": "10 OCT 1998",
+            "FAM" : "@F2@" 
+        },
+        "@I3@": {
+            "NAME": "Michael /Cooke/",
+            "SEX": "M",
+            "BIRT": "",
+            "DATE": "2 DEC 1962",
+            "DEAT": "",
+            "DEATH_DATE": "16 APR 2021",
+            "FAMS": "@F2@",
+            "FAMC": "@F3@",
+        },
+        "@I4@": {
+            "NAME": "Diana /Chaney/",
+            "SEX": "F",
+            "BIRT": "",
+            "DATE": "1 OCT 1970",
+            "FAMS": "@F2@",
+            "FAMC": "@F4@",
+        },
+        "@I5@": {
+            "NAME": "Wyett /Cooke/",
+            "SEX" : "M",
+            "BIRT": "",
+            "DATE": "10 OCT 1998",
+            "FAM" : "@F2@" 
+        },
+    }
+    assert us_37(families, individuals) == True
+
+def test_us42_valid():
+    assert us_42(CORRECT_FAMILIES,CORRECT_INDIVIDUALS) == True
+
+def test_us42_invalid():
+    individuals = {
+        "@I1@": {
+            "NAME": "Ryan /Hartman/",
+            "SEX": "M",
+            "BIRT": "",
+            "DATE": "11 NOV 1999",
+            "FAMS": "@F9@",
+            "FAMC": "@F2@",
+        },
+        "@I3@": {
+            "NAME": "Thomas /Hartman/",
+            "SEX": "M",
+            "BIRT": "",
+            "DATE": "2 DEC 1962",
+            "FAMS": "@F2@",
+            "FAMC": "@F3@",
+        },
+        "@I4@": {
+            "NAME": "June /Lagaveen/",
+            "SEX": "F",
+            "BIRT": "",
+            "DATE": "1 OCT 1970",
+            "FAMS": "@F2@",
+            "FAMC": "@F4@",
+        },
+        "@I5@": {
+            "NAME": "Thomas /Hartman/",
+            "SEX": "M",
+            "BIRT": "",
+            "DATE": "39 JUL 1994",
+            "FAMS": "@F5@",
+            "FAMC": "@F2@",
+        },
+    }
+    families = {
+        "@F2@": {
+            "HUSB": "@I3@",
+            "WIFE": "@I4@",
+            "CHIL": ["@I1@", "@I5@"],
+            "MARR": "38 AUG 2020",
+            "DIV": "33 DEC 2018",
+        }
+    }
+    assert us_42(families,individuals) == False
