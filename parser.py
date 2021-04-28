@@ -6,7 +6,7 @@ import os
 import util
 import collections
 from tabulate import tabulate
-from datetime import datetime
+from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 
 TAGS = {
@@ -273,6 +273,8 @@ def get_information(file_path):
     # list_death_in_last_30_days(individuals)
     # us_37(families,individuals)
     # us_42(families,individuals)
+    # us_35(individuals)
+    us_40(file_path)
 
 def list_death_in_last_30_days(individuals):
   anyDeaths = False
@@ -1293,6 +1295,35 @@ def us_42(families,individuals):
                 print("ERROR: US 42: Family (" + str(id)+ ") has an illegitimate divorce date.")
                 is_valid = False
     return is_valid
+
+# US35 - List Recent Births
+def us_35(individuals):
+    recent_births = False
+    for id in individuals:
+        birthdate = datetime.strptime(individuals[id]['DATE'], "%d %b %Y")
+        currentDate = datetime.now()
+        monthBeforeCurrentDate = datetime.now() - timedelta(days=30)
+        if (monthBeforeCurrentDate < birthdate < currentDate):
+            # Birthdate falls in between
+            recent_births = True
+            print('US35: Individual: There was a recent birth on', birthdate.strftime("%d %b %Y"), "for individual", id)
+    return recent_births
+
+# US40 - Include input line numbers
+def us_40(file_path):
+    noErrorInFile = True
+
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"Cannot find file '{file_path}'.")
+
+    with open(file_path, "r") as fp:
+        for index, line in enumerate(fp):
+            parts = line.rstrip().split(" ")
+            if len(parts) < 2:
+                noErrorInFile = False
+                print("ERROR: US 40: Error in line ", index)
+
+    return noErrorInFile
 
         
 def parse_GEDCOM(file_path):

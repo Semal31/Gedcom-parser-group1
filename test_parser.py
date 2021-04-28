@@ -2737,3 +2737,21 @@ def test_us42_invalid():
         }
     }
     assert us_42(families,individuals) == False
+
+def test_US35_valid():
+  individuals = {'@I13@': {'NAME': 'Peter /Vanderzee/', 'SEX': 'M', 'BIRT': '', 'DATE': '10 JUL 1911'},
+                  '@I14@': {'NAME': 'Olive /Heritage/', 'SEX': 'F', 'BIRT': '', 'DATE': '25 APR 2021'}}
+  assert us_35(individuals) == True
+
+def test_US35_invalid():
+    individuals = {'@I13@': {'NAME': 'Peter /Vanderzee/', 'SEX': 'M', 'BIRT': '', 'DATE': '10 JUL 1911'},
+                    '@I14@': {'NAME': 'Olive /Heritage/', 'SEX': 'F', 'BIRT': '', 'DATE': '25 APR 2020'}}
+    assert us_35(individuals) == False
+
+def test_US40_valid():
+  filePath = 'myfamily.ged'
+  assert us_40(filePath) == True
+
+def test_US40_invalid():
+    filePath = 'requirements.txt'
+    assert us_40(filePath) == False
