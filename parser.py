@@ -6,7 +6,7 @@ import os
 import util
 import collections
 from tabulate import tabulate
-from datetime import datetime
+from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 
 TAGS = {
@@ -35,12 +35,14 @@ individuals = {}
 
 ill_dates = ""
 
+
 def is_valid_tag(level, tag):
     return "Y" if (tag in TAGS and TAGS[tag] == level) else "N"
 
 
 def get_age(birth_date, death_date=None):
     today = datetime.today()
+    date = None
     try:
         date = datetime.strptime(birth_date, "%d %b %Y")
     except ValueError:
@@ -125,38 +127,36 @@ def get_sorted_individuals():
             if "DEAT" in v:
                 dday = datetime.strptime(v.get("DEATH_DATE"), "%d %b %Y")
             rows.append(
-            [
-                k,
-                v.get("NAME"),
-                v.get("SEX"),
-                v.get("DATE"),
-                get_age(v.get("DATE"), v.get("DEATH_DATE"))
-                if "DEAT" in v
-                else get_age(v.get("DATE")),
-                "DEAT" not in v,
-                v.get("DEATH_DATE") if "DEAT" in v else "N/A",
-                get_children(k, v["FAMC"]) if "FAMC" in v else "N/A",
-                get_spouse_id(k, v["FAMS"]) if "FAMS" in v else "N/A",
-            ]
-        )
+                [
+                    k,
+                    v.get("NAME"),
+                    v.get("SEX"),
+                    v.get("DATE"),
+                    get_age(v.get("DATE"), v.get("DEATH_DATE"))
+                    if "DEAT" in v
+                    else get_age(v.get("DATE")),
+                    "DEAT" not in v,
+                    v.get("DEATH_DATE") if "DEAT" in v else "N/A",
+                    get_children(k, v["FAMC"]) if "FAMC" in v else "N/A",
+                    get_spouse_id(k, v["FAMS"]) if "FAMS" in v else "N/A",
+                ]
+            )
         except ValueError:
             bday = "1 JAN 1111"
             dday = "1 JAN 1111"
             rows.append(
-            [
-                k,
-                v.get("NAME"),
-                v.get("SEX"),
-                bday,
-                get_age(bday, dday)
-                if "DEAT" in v
-                else get_age(bday),
-                "DEAT" not in v,
-                dday if "DEAT" in v else "N/A",
-                get_children(k, v["FAMC"]) if "FAMC" in v else "N/A",
-                get_spouse_id(k, v["FAMS"]) if "FAMS" in v else "N/A",
-            ]
-        )
+                [
+                    k,
+                    v.get("NAME"),
+                    v.get("SEX"),
+                    bday,
+                    get_age(bday, dday) if "DEAT" in v else get_age(bday),
+                    "DEAT" not in v,
+                    dday if "DEAT" in v else "N/A",
+                    get_children(k, v["FAMC"]) if "FAMC" in v else "N/A",
+                    get_spouse_id(k, v["FAMS"]) if "FAMS" in v else "N/A",
+                ]
+            )
         # Below was the original code before try-except block was incorporated
         # rows.append(
         #     [
@@ -274,27 +274,73 @@ def get_information(file_path):
     # us_37(families,individuals)
     # us_42(families,individuals)
 
+
 def list_death_in_last_30_days(individuals):
-  anyDeaths = False
-  for individual in individuals:
-    if "DEATH_DATE" in individuals[individual]:
-      try:
-        death_date = datetime.strptime(individuals[individual]["DEATH_DATE"], "%d %b %Y")
-      except ValueError:
-        try:
-          death_date = datetime.strptime(individuals[individual]["DEATH_DATE"], "%b %Y")
-        except ValueError:
-          try:
-            death_date = datetime.strptime(individuals[individual]["DEATH_DATE"], "%Y")
-          except ValueError:
-            pass
-      today = datetime.today()
-      delta = today - death_date
-      if delta.days <= 30:
-        anyDeaths = True
-        print(f"{individuals[individual]['NAME']} has died within 30 days")
-  return anyDeaths
-      
+    anyDeaths = False
+    for individual in individuals:
+        if "DEATH_DATE" in individuals[individual]:
+            try:
+                death_date = datetime.strptime(
+                    individuals[individual]["DEATH_DATE"], "%d %b %Y"
+                )
+            except ValueError:
+                try:
+                    death_date = datetime.strptime(
+                        individuals[individual]["DEATH_DATE"], "%b %Y"
+                    )
+                except ValueError:
+                    try:
+                        death_date = datetime.strptime(
+                            individuals[individual]["DEATH_DATE"], "%Y"
+                        )
+                    except ValueError:
+                        pass
+            today = datetime.today()
+            delta = today - death_date
+            if delta.days <= 30:
+                anyDeaths = True
+                print(f"{individuals[individual]['NAME']} has died within 30 days")
+    return anyDeaths
+
+
+def list_upcoming_anniversaries(individuals: dict, families: dict) -> bool:
+    anniversaries = 0
+    for family in families.values():
+        if "MARR" in family:
+            marriage_date = datetime.strptime(family["MARR"], "%d %b %Y")
+            month_away = datetime.now() + timedelta(days=30)
+            marriage_date = marriage_date.replace(year=(datetime.now()).year)
+            print(marriage_date, month_away)
+            if marriage_date < month_away:
+                anniversaries += 1
+                husb = individuals[family["HUSB"]]["NAME"]
+                wife = individuals[family["WIFE"]]["NAME"]
+                print(f"Anniversary number {anniversaries}: {husb} and {wife}")
+    return anniversaries
+
+
+def list_large_age_differences(individuals: dict, families: dict) -> bool:
+    differences = 0
+    for family in families.values():
+        if "MARR" in family:
+            husb = individuals[family["HUSB"]]["NAME"]
+            wife = individuals[family["WIFE"]]["NAME"]
+            husb_birthdate = datetime.strptime(
+                individuals[family["HUSB"]]["DATE"], "%d %b %Y"
+            )
+            wife_birthdate = datetime.strptime(
+                individuals[family["WIFE"]]["DATE"], "%d %b %Y"
+            )
+            today = datetime.today()
+            husb_age = relativedelta(today, husb_birthdate).years
+            wife_age = relativedelta(today, wife_birthdate).years
+            if husb_age > 2 * wife_age or wife_age > 2 * husb_age:
+                differences += 1
+                print(
+                    f"{husb} and {wife} have an age difference of {abs(husb_age - wife_age)}!"
+                )
+    return differences
+
 
 def siblings_do_not_marry(individuals: dict, families: dict) -> bool:
     """Implements user story 18, checking if all siblings do not marry.
@@ -457,13 +503,14 @@ def check_age(individuals: dict) -> bool:
 
 
 def list_over_30_and_single(individuals):
-  nobody = True
-  for id in individuals:
-    if "FAMS" not in individuals[id] and "DEAT" not in individuals[id]:
-      if get_age(individuals[id]["DATE"]) > 30:
-        nobody = False
-        print(individuals[id]["NAME"] + " is over 30 and has not been married")
-  return nobody
+    nobody = True
+    for id in individuals:
+        if "FAMS" not in individuals[id] and "DEAT" not in individuals[id]:
+            if get_age(individuals[id]["DATE"]) > 30:
+                nobody = False
+                print(individuals[id]["NAME"] + " is over 30 and has not been married")
+    return nobody
+
 
 def unique_first_names(families, individuals):
     is_valid = True
@@ -1112,23 +1159,36 @@ def check_marriage_to_descendants(families):
                         is_valid = False
     return is_valid
 
+
 def order_siblings_by_age(families, individuals):
     siblings_exist_in_all_fams = True
     for id in families:
         if "CHIL" in families[id]:
             children = {}
-            if len(families[id]['CHIL']) > 1:
-                for child in families[id]['CHIL']:
-                    children.update({child: get_age(individuals[child]['DATE'])})
+            if len(families[id]["CHIL"]) > 1:
+                for child in families[id]["CHIL"]:
+                    children.update({child: get_age(individuals[child]["DATE"])})
                 sorted_children = sorted(children, key=children.get, reverse=True)
-                print('For family', id + ', siblings are ordered in descending age as such:', ', '.join(sorted_children))
+                print(
+                    "For family",
+                    id + ", siblings are ordered in descending age as such:",
+                    ", ".join(sorted_children),
+                )
             else:
                 siblings_exist_in_all_fams = False
-                print('For family', id + ', there is only one child (no siblings to order):', families[id]['CHIL'][0])
+                print(
+                    "For family",
+                    id + ", there is only one child (no siblings to order):",
+                    families[id]["CHIL"][0],
+                )
         else:
             siblings_exist_in_all_fams = False
-            print('For family', id + ', there are no children (and therefore no siblings to order)')
+            print(
+                "For family",
+                id + ", there are no children (and therefore no siblings to order)",
+            )
     return siblings_exist_in_all_fams
+
 
 def check_unique_ids(file_path):
     f = open(file_path, "r")
@@ -1143,35 +1203,53 @@ def check_unique_ids(file_path):
                 family_ids.append(line.split()[1])
     if len(individual_ids) != len(set(individual_ids)):
         is_valid = False
-        print('ERROR: US22: Individual: Duplicate individual IDs found')
+        print("ERROR: US22: Individual: Duplicate individual IDs found")
     if len(family_ids) != len(set(family_ids)):
         is_valid = False
-        print('ERROR: US22: Family: Duplicate family IDs found')
+        print("ERROR: US22: Family: Duplicate family IDs found")
     return is_valid
 
-#US27 - Include individual ages
+
+# US27 - Include individual ages
 def us_27(individuals):
     age = True
     for id in individuals:
         individual_Name = individuals[id]["NAME"]
         if individuals[id]["DATE"] == None:
             age = False
-            print("ERROR: INDIVIDUAL: US27: Individual " + individual_Name + "does not have age listed in table.\n")
+            print(
+                "ERROR: INDIVIDUAL: US27: Individual "
+                + individual_Name
+                + "does not have age listed in table.\n"
+            )
     return age
 
-#US32 - List multiple births
+
+# US32 - List multiple births
 def us_32(individuals):
     multiple_Births = False
     birthdays = []
     for id in individuals:
         bday = individuals[id]["DATE"]
-        birthdays.append(str(bday)) 
-    if [item for item, count in collections.Counter(birthdays).items() if count > 1] == []:
+        birthdays.append(str(bday))
+    if [
+        item for item, count in collections.Counter(birthdays).items() if count > 1
+    ] == []:
         return multiple_Births
     else:
         multiple_Births = True
-        print("US 32: These dates has multple births: "+ str([item for item, count in collections.Counter(birthdays).items() if count > 1]))
+        print(
+            "US 32: These dates has multple births: "
+            + str(
+                [
+                    item
+                    for item, count in collections.Counter(birthdays).items()
+                    if count > 1
+                ]
+            )
+        )
         return multiple_Births
+
 
 # US24 - Unique families and spouses
 def us_24(families):
@@ -1182,12 +1260,13 @@ def us_24(families):
         family = families[id]
         # Check if any matches with local array (check for duplicate families)
         for fam in arrayOfFamilies:
-            if (family == fam):
-                print('ERROR: US24: Family: Duplicate family found')
+            if family == fam:
+                print("ERROR: US24: Family: Duplicate family found")
                 is_valid = False
         arrayOfFamilies.append(family)
 
     return is_valid
+
 
 # US30 - List living married
 def us_30(individuals):
@@ -1197,51 +1276,77 @@ def us_30(individuals):
         if not "DEATH_DATE" in individuals[id]:
             if "FAMS" in individuals[id]:
                 print(individuals[id]["NAME"])
-                
+
+
 # US38 - List upcoming birthdays
 def list_upcoming_birthdays(individuals):
     any_bdays = False
     for id in individuals:
-        birthdate = datetime.strptime(individuals[id]['DATE'], "%d %b %Y")
+        birthdate = datetime.strptime(individuals[id]["DATE"], "%d %b %Y")
         month = int(birthdate.strftime("%m"))
         day = int(birthdate.strftime("%d"))
         d = (month, day)
-        curr_month = int(datetime.now().strftime('%m'))
+        curr_month = int(datetime.now().strftime("%m"))
         curr_day = int(datetime.now().strftime("%d"))
         curr_d = (curr_month, curr_day)
         one_mo_later = (curr_month + 1, curr_day)
         if d > curr_d and d < one_mo_later:
             any_bdays = True
-            print('US38: Individual: There is an upcoming birthday on', birthdate.strftime("%b"), day, "for individual", id)
+            print(
+                "US38: Individual: There is an upcoming birthday on",
+                birthdate.strftime("%b"),
+                day,
+                "for individual",
+                id,
+            )
     return any_bdays
 
-#US33 - List orphans
+
+# US33 - List orphans
 def list_orphans(families, individuals):
     any_orphans = False
     for id in families:
-        if 'CHIL' in families[id]:
-            for child in families[id]['CHIL']:
-                if get_age(individuals[child]['DATE']) < 18:
+        if "CHIL" in families[id]:
+            for child in families[id]["CHIL"]:
+                if get_age(individuals[child]["DATE"]) < 18:
                     if "HUSB" in families[id] and "WIFE" in families[id]:
-                        if "DEAT" in individuals[families[id]["HUSB"]] and "DEAT" in individuals[families[id]["WIFE"]]:
+                        if (
+                            "DEAT" in individuals[families[id]["HUSB"]]
+                            and "DEAT" in individuals[families[id]["WIFE"]]
+                        ):
                             any_orphans = True
-                            print("US33: Both parents for family", id, "have died, leaving", child, "(age", str(get_age(individuals[child]['DATE'])) + ") as an orphan.")
+                            print(
+                                "US33: Both parents for family",
+                                id,
+                                "have died, leaving",
+                                child,
+                                "(age",
+                                str(get_age(individuals[child]["DATE"]))
+                                + ") as an orphan.",
+                            )
     return any_orphans
-        
-#US37 - List recent survivors
+
+
+# US37 - List recent survivors
 def us_37(families, individuals):
     is_valid = False
     output = "US37: "
     for id in individuals:
         if "DEAT" in individuals[id]:
             try:
-                death_date = datetime.strptime(individuals[id]["DEATH_DATE"], "%d %b %Y")
+                death_date = datetime.strptime(
+                    individuals[id]["DEATH_DATE"], "%d %b %Y"
+                )
             except ValueError:
                 try:
-                    death_date = datetime.strptime(individuals[id]["DEATH_DATE"], "%b %Y")
+                    death_date = datetime.strptime(
+                        individuals[id]["DEATH_DATE"], "%b %Y"
+                    )
                 except ValueError:
                     try:
-                        death_date = datetime.strptime(individuals[id]["DEATH_DATE"], "%Y")
+                        death_date = datetime.strptime(
+                            individuals[id]["DEATH_DATE"], "%Y"
+                        )
                     except ValueError:
                         pass
             today = datetime.today()
@@ -1249,52 +1354,82 @@ def us_37(families, individuals):
             if delta.days <= 30:
                 dead_ID = id
                 fam_ID = individuals[id]["FAMS"]
-                output += individuals[dead_ID]["NAME"].replace("/","") + " died in the last 30 days\n"
+                output += (
+                    individuals[dead_ID]["NAME"].replace("/", "")
+                    + " died in the last 30 days\n"
+                )
                 if families[fam_ID]["HUSB"] == dead_ID:
                     living_spouse_ID = families[fam_ID]["WIFE"]
-                else: 
+                else:
                     living_spouse_ID = families[fam_ID]["HUSB"]
                 if "DEAT" not in individuals[living_spouse_ID]:
-                    output += "Living Spouse: "+ individuals[living_spouse_ID]["NAME"].replace("/", "") + "\n"
+                    output += (
+                        "Living Spouse: "
+                        + individuals[living_spouse_ID]["NAME"].replace("/", "")
+                        + "\n"
+                    )
                 children = families[fam_ID]["CHIL"]
                 for child in children:
                     if "DEAT" not in individuals[child]:
-                        output+= "Living Children: " + individuals[child]["NAME"].replace("/","") + "\n"
+                        output += (
+                            "Living Children: "
+                            + individuals[child]["NAME"].replace("/", "")
+                            + "\n"
+                        )
                 is_valid = True
                 print(output)
     return is_valid
- 
-#42 - Reject illegitimate dates
-def us_42(families,individuals):
+
+
+# 42 - Reject illegitimate dates
+def us_42(families, individuals):
     is_valid = True
     for id in individuals:
-        try: 
+        try:
             test_birthday = datetime.strptime(individuals[id]["DATE"], "%d %b %Y")
         except ValueError:
-            print("ERROR: US 42: " + individuals[id]["NAME"].replace("/","") +"'s birthday/death date was an illegitimate date and was replaced with 1 JAN 1111")
+            print(
+                "ERROR: US 42: "
+                + individuals[id]["NAME"].replace("/", "")
+                + "'s birthday/death date was an illegitimate date and was replaced with 1 JAN 1111"
+            )
             is_valid = False
         if "DEAT" in individuals[id]:
             try:
-                test_death = datetime.strptime(individuals[id]["DEATH_DATE"], "%d %b %Y")
+                test_death = datetime.strptime(
+                    individuals[id]["DEATH_DATE"], "%d %b %Y"
+                )
             except ValueError:
-                print("ERROR: US 42: " +individuals[id]["NAME"].replace("/","")+ "'s birthday/death date was an illegitimate date and was replaced with 1 JAN 1111.")
+                print(
+                    "ERROR: US 42: "
+                    + individuals[id]["NAME"].replace("/", "")
+                    + "'s birthday/death date was an illegitimate date and was replaced with 1 JAN 1111."
+                )
                 is_valid = False
     for id in families:
         if "MARR" in families[id]:
             try:
                 test_marr = datetime.strptime(families[id]["MARR"], "%d %b %Y")
             except ValueError:
-                print("ERROR: US 42: Family (" + str(id)+ ") has an illegitimate marriage date.")
-                is_valid= False
+                print(
+                    "ERROR: US 42: Family ("
+                    + str(id)
+                    + ") has an illegitimate marriage date."
+                )
+                is_valid = False
         if "DIV" in families[id]:
             try:
                 test_div = datetime.strptime(families[id]["DIV"], "%d %b %Y")
             except ValueError:
-                print("ERROR: US 42: Family (" + str(id)+ ") has an illegitimate divorce date.")
+                print(
+                    "ERROR: US 42: Family ("
+                    + str(id)
+                    + ") has an illegitimate divorce date."
+                )
                 is_valid = False
     return is_valid
 
-        
+
 def parse_GEDCOM(file_path):
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"Cannot find file '{file_path}'.")
